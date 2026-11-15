@@ -107,3 +107,21 @@ def test_bad_weights(matrix):
     p = TasteProfile(matrix)
     with pytest.raises(ValueError):
         p.rerank(np.zeros(6), weight=1.5)
+
+
+def test_joined_matches_combine():
+    from recsys.similar import Joined
+
+    rng = np.random.default_rng(1)
+    a = unit(rng.normal(size=(30, 4)))
+    b = unit(rng.normal(size=(30, 6)))
+    whole, lazy = combine([a, b]), Joined([a, b])
+    assert lazy.shape == whole.shape and len(lazy) == 30
+    assert np.allclose(lazy[7], whole[7], atol=1e-6) and np.allclose(lazy[[2, 5]], whole[[2, 5]], atol=1e-6)
+    assert np.allclose(lazy @ lazy[7], whole @ whole[7], atol=1e-6)
+    got, want = similar_recipes(lazy, 3, k=5), similar_recipes(whole, 3, k=5)
+    assert list(got[0]) == list(want[0])
+    taste = TasteProfile(lazy)
+    taste.like(1)
+    taste.like(4)
+    assert np.allclose(taste.similarity(), (whole @ unit([whole[1] + whole[4]])[0]), atol=1e-5)

@@ -54,6 +54,37 @@ def combine(matrices, weights=None) -> np.ndarray:
     return np.hstack(blocks)
 
 
+class Joined:
+    """Several blocks read as one matrix, without building it.
+
+    Stands in for ``combine(blocks)`` with equal weights where the copy would
+    cost too much memory: a quarter of a million rows of ingredient and text
+    vectors are 240 MB side by side. Supports what this module needs: rows by
+    index, ``matrix @ vector``, ``len`` and ``shape``.
+    """
+
+    def __init__(self, blocks):
+        self.blocks = [np.asarray(b) for b in blocks]
+        if len({len(b) for b in self.blocks}) != 1:
+            raise ValueError("matrices must have the same number of rows")
+        self._scale = np.float32(1.0 / np.sqrt(len(self.blocks)))
+        self._cuts = np.cumsum([b.shape[1] for b in self.blocks])[:-1]
+        self.shape = (len(self.blocks[0]), int(sum(b.shape[1] for b in self.blocks)))
+
+    def __len__(self) -> int:
+        return self.shape[0]
+
+    def __getitem__(self, idx) -> np.ndarray:
+        return np.concatenate([b[idx] for b in self.blocks], axis=-1).astype(np.float32) * self._scale
+
+    def __matmul__(self, vector: np.ndarray) -> np.ndarray:
+        parts = np.split(np.asarray(vector, dtype=np.float32), self._cuts)
+        total = self.blocks[0] @ parts[0]
+        for block, part in zip(self.blocks[1:], parts[1:]):
+            total = total + block @ part
+        return total * self._scale
+
+
 def _scale(x: np.ndarray) -> np.ndarray:
     """Min-max to 0..1 over the finite values, so scores from different sources can be blended."""
     out = np.zeros_like(x, dtype=np.float32)

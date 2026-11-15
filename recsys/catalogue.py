@@ -352,8 +352,13 @@ class Catalogue:
 
         with np.load(self.path / "text.npz") as p:
             components, scale = p["components"], p["scale"]
-        matrix = np.load(self.path / "text.npy").astype(np.float32) / scale
-        matrix /= np.maximum(np.linalg.norm(matrix, axis=1, keepdims=True), 1e-12)
+        packed = np.load(self.path / "text.npy")
+        # In place: a second copy of this matrix is 180 MB the function does not have.
+        matrix = np.empty(packed.shape, dtype=np.float32)
+        np.divide(packed, scale, out=matrix)
+        del packed
+        norms = np.sqrt(np.einsum("ij,ij->i", matrix, matrix))
+        matrix /= np.maximum(norms, 1e-12)[:, None]
         if len(matrix) != self.n:
             raise ValueError("text embeddings do not match the catalogue")
         return PackedSemantic(matrix, components)

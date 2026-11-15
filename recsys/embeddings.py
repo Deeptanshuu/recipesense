@@ -167,7 +167,8 @@ class IngredientIndex:
         # Padded ingredient ids per recipe, for max-over-ingredients lookups.
         # The pad points at an extra column that callers fill with a low value.
         width = max(1, int(lens.max())) if n else 1
-        self.padded = np.full((n, width), len(self.keys), dtype=np.int32)
+        small = np.uint16 if len(self.keys) < np.iinfo(np.uint16).max else np.int32
+        self.padded = np.full((n, width), len(self.keys), dtype=small)
         row_of = np.repeat(np.arange(n), lens)
         self.padded[row_of, np.arange(len(indices)) - indptr[:-1][row_of]] = indices
         self.fuzzy = FuzzyMatcher(vocab, fuzzy_threshold)

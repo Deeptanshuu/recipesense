@@ -152,7 +152,6 @@ class Recommender:
         self._pos = {int(i): p for p, i in enumerate(store.ids)}
         self._veg = np.asarray(store.veg, dtype=bool)
         self._palette = Palette(self.vocab, store.n)
-        self._names = [n.strip().lower() for n in store.names]
         self._cuisine_mask = store.cuisine_masks()
         self._course_mask = store.course_masks()
         self._lock = threading.RLock()
@@ -183,6 +182,10 @@ class Recommender:
     def _cards(self, positions, scores) -> list[dict]:
         return [{**self._card(int(p)), "score": round(float(s), 4)} for p, s in zip(positions, scores)]
 
+    def _name(self, pos: int) -> str:
+        """The title as compared when dropping repeats."""
+        return self.store.names[pos].strip().lower()
+
     def _position(self, recipe_id: int) -> int:
         try:
             return self._pos[int(recipe_id)]
@@ -204,7 +207,7 @@ class Recommender:
             order = part[np.lexsort((part, -scores[part]))]
             seen, pos, out = set(skip), [], []
             for p in order:
-                name = self._names[p]
+                name = self._name(p)
                 if name in seen:
                     continue
                 seen.add(name)
@@ -357,7 +360,7 @@ class Recommender:
         else:
             scores = np.zeros(len(allowed))
             scores[found[0]] = found[1]
-        picked, vals = self._pick(scores, allowed, limit, skip=[self._names[pos]])
+        picked, vals = self._pick(scores, allowed, limit, skip=[self._name(pos)])
         return self._cards(picked, vals)
 
     def meta(self) -> dict:
@@ -426,9 +429,9 @@ class Recommender:
                 return self._combined[1]
             try:
                 if ingredient is not None and text is not None:
-                    from .similar import combine
+                    from .similar import Joined
 
-                    matrix = combine([ingredient, text])
+                    matrix = Joined([ingredient, text])
                 else:
                     matrix = ingredient if ingredient is not None else text
             except Exception:
