@@ -98,3 +98,17 @@ def test_overlap_prefers_the_exact_recipe(small):
     scores = ranker.score(list(part["ingredients"][row]))
     assert scores.dtype == np.float32
     assert scores[row] == pytest.approx(scores.max())
+
+
+def test_fuzzy_prefers_the_common_spelling():
+    from collections import Counter
+
+    from recsys.data import Vocabulary
+    from recsys.embeddings import FuzzyMatcher
+
+    counts = Counter({"tomato": 500, "dried tomatoe": 3, "chicken": 400, "chikoo": 2, "curry leaf": 90, "curry": 30})
+    fuzzy = FuzzyMatcher(Vocabulary(counts=counts, alias_to_key={}, display={k: k for k in counts}))
+    assert fuzzy.match("tomatoe") == "tomato"      # not the rare "dried tomatoe"
+    assert fuzzy.match("chiken") == "chicken"
+    assert fuzzy.match("curry leave") == "curry leaf"
+    assert fuzzy.match("zzzz") is None

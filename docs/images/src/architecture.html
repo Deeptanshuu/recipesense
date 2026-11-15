@@ -19,17 +19,18 @@
 // One request through RecipeSense, drawn as a block diagram.
 // Numbers come from DATA.examples (examples.json) where it has them; the rest
 // are constants from the code: recsys/ranker.py, recsys/embeddings.py,
-// recsys/service.py, recsys/similar.py, models/ranker.json, data/recipes.csv.
+// recsys/service.py, recsys/similar.py, data/catalogue/ranker.json, tfidf.json and the
+// ingredient vector params, and the row counts of the two source files.
 const ex = DATA.examples;
 const ie = ex.ingredients_example;
 const sh = ex.shapes;
 const t = ex.api_timings;
 const fmt = (x) => x.toLocaleString('en-US');
 const median = (a) => { const s = [...a].sort((x, y) => x - y); return s[(s.length - 1) >> 1]; };
-const N = ex.catalogue.recipes;                 // 6521
+const N = ex.catalogue.recipes;                 // 238157
 const NS = fmt(N);
-const RAW_ROWS = 7540, TFIDF_WORDS = 1308, TREES = 99, LEAVES = 31;
-const TRAIN_Q = 7599, VALID_Q = 1880, PER_RANKER = 50, WINDOW = 34;
+const RAW_ROWS = 7540 + 231637, TFIDF_WORDS = 4653, TREES = 93, LEAVES = 31;
+const TRAIN_Q = 17301, VALID_Q = 4324, PER_RANKER = 50, WINDOW = 43;
 const shp = (a) => `[${a.join(', ')}]`;
 
 const C = {
@@ -149,11 +150,11 @@ LEG.forEach(([x, y, k, s]) => {
   else rect(x, y - 8, 28, 16, ST[k], 4);
   text(x + 40, y + 4.5, s, { size: 13, fill: C.ink2 });
 });
-text(868, 116.5, '[6521, 64]', { f: 'mono', size: 11.5, fill: C.grey });
-text(953, 116.5, 'array shape, rows first', { size: 13, fill: C.ink2 });
-line([[1150, 112], [1186, 112]], { dash: true, color: C.accent });
-add(`<path d="M1186,112 l-6,-3.5 v7 z" fill="${C.accent}"/>`);
-text(1196, 116.5, 'taste from liked recipes', { size: 13, fill: C.ink2 });
+text(868, 116.5, shp(sh.recipe_ingredient_vectors), { f: 'mono', size: 11.5, fill: C.grey });
+text(968, 116.5, 'array shape, rows first', { size: 13, fill: C.ink2 });
+line([[1165, 112], [1201, 112]], { dash: true, color: C.accent });
+add(`<path d="M1201,112 l-6,-3.5 v7 z" fill="${C.accent}"/>`);
+text(1211, 116.5, 'taste from liked recipes', { size: 13, fill: C.ink2 });
 
 // ================= INGREDIENT SEARCH (main panel) =================
 const MX = 410;                                   // main axis
@@ -245,7 +246,7 @@ RK.forEach((r) => label(r.c + 8, 692, `[${N}] → top ${PER_RANKER}`));
 // Resolve
 rect(300, 884, 470, 90, ST.plain);
 text(316, 906, 'Resolve', { f: 'serif', size: 16, w: 600 });
-['exact name or one of ' + ex.catalogue.aliases + ' aliases', 'spelling and plural folding', 'char 2–4-gram match, cosine ≥ 0.70']
+['exact name or one of ' + ex.catalogue.aliases + ' aliases', 'spelling and plural folding', 'closest spelling, or char n-grams']
   .forEach((s, i) => text(316, 927 + i * 16, `${i + 1}  ${s}`, { size: 11.5, fill: C.ink2 }));
 line([[540, 894], [540, 964]], { color: '#e3ded3' });
 ie.resolved.forEach((r, i) => {
@@ -286,7 +287,7 @@ arrow([[1080, 246], [1128, 246]]);
 stack(1130, 216, 170, 60, ST.blue, 3, 5, true);
 text(1215, 237, 'MiniLM encoder', { f: 'serif', size: 15, w: 600, a: 'middle' });
 text(1215, 253, 'all-MiniLM-L6-v2', { f: 'mono', size: 10.5, fill: C.ink2, a: 'middle' });
-text(1215, 268, 'mean-pooled, unit length', { size: 10.5, fill: C.grey, a: 'middle' });
+text(1215, 268, `mean-pooled, cut to ${sh.text_matrix[1]}-d`, { size: 10.5, fill: C.grey, a: 'middle' });
 text(1318, 252, '×6', { f: 'serif', size: 17, w: 600, fill: '#52709c' });
 text(1318, 268, 'layers', { size: 10.5, fill: C.grey });
 arrow([[1215, 276], [1215, 310]]);
@@ -298,10 +299,10 @@ rect(1150, 312, 290, 118, ST.plain);
 text(1166, 334, 'Cosine against every recipe', { f: 'serif', size: 15, w: 600 });
 tile(1166, 354, 14, 7, { cs: 5.6, gap: 1.2, ramp: 'blue', seed: 23, layers: 3, dash: '3 2', frame: '#8e9aab' });
 text(1286, 370, shp(sh.text_matrix), { f: 'mono', size: 10.5, fill: C.ink2 });
-text(1286, 386, 'text_embeddings.npy', { f: 'mono', size: 10, fill: C.grey });
+text(1286, 386, 'catalogue/text.npy', { f: 'mono', size: 10, fill: C.grey });
 text(1286, 402, 'unit rows: dot = cosine', { size: 10.5, fill: C.grey });
 arrow([[1150, 392], [1112, 392]]);
-label(1131, 385, `[${N}]`, { a: 'middle', size: 10 });
+label(1131, 385, `[${N}]`, { a: 'middle', size: 8.5 });
 rect(880, 312, 230, 118, ST.plain);
 text(894, 330, 'top results', { size: 11, fill: C.grey });
 se.top.slice(0, 3).forEach((r, i) => {
@@ -316,7 +317,7 @@ text(894, 419, 'then the same filters and boosts', { size: 10.5, fill: C.grey })
 const si = ex.similar_example;
 add(`<rect x="860" y="470" width="600" height="270" rx="14" fill="${C.panel}"/>`);
 text(880, 497, 'More like this', { f: 'serif', size: 17, w: 600 });
-text(1440, 497, `${median(t.similar_2121_ms)} ms`, { size: 14, w: 600, fill: C.accent, a: 'end' });
+text(1440, 497, `${t.similar_median_ms} ms`, { size: 14, w: 600, fill: C.accent, a: 'end' });
 rect(880, 532, 130, 56, ST.plain);
 text(894, 553, `recipe ${si.source_id}`, { f: 'mono', size: 11, fill: C.grey });
 text(894, 574, short(si.source), { f: 'serif', size: 14, w: 600 });
@@ -346,7 +347,7 @@ text(1196, 677, `Cosine against all ${NS}`, { f: 'serif', size: 14, w: 600 });
 text(1196, 695, `${shp(sh.combined)} · ingredient + text`, { f: 'mono', size: 10.5, fill: C.ink2 });
 text(1196, 712, 'same matrix gives the taste vector', { size: 10.5, fill: C.grey });
 arrow([[1180, 690], [1142, 690]]);
-label(1161, 683, `[${N}]`, { a: 'middle', size: 10 });
+label(1161, 683, `[${N}]`, { a: 'middle', size: 8.5 });
 rect(880, 646, 260, 76, ST.plain);
 si.top.slice(0, 3).forEach((r, i) => {
   const y = 668 + i * 22;
@@ -362,7 +363,7 @@ text(600, 299, 'taste from liked recipes', { f: 'mono', size: 10.5, fill: C.acce
 add(`<rect x="860" y="760" width="600" height="290" rx="14" fill="none" stroke="#a8b0bc" stroke-width="1.2" stroke-dasharray="5 4"/>`);
 text(880, 787, 'Built once, offline', { f: 'serif', size: 17, w: 600 });
 rect(880, 800, 150, 40, ST.offline);
-text(892, 817, 'data/recipes.csv', { f: 'mono', size: 10.5, fill: C.ink });
+text(892, 817, 'recipes.csv + Food.com', { f: 'mono', size: 10, fill: C.ink });
 text(892, 832, `${fmt(RAW_ROWS)} rows`, { size: 10.5, fill: C.grey });
 arrow([[1030, 820], [1068, 820]]);
 rect(1070, 800, 180, 40, ST.plain);
@@ -374,9 +375,9 @@ text(1302, 817, `${NS} recipes`, { f: 'serif', size: 13.5, w: 600 });
 text(1302, 832, `${fmt(ex.catalogue.ingredients)} ingredients`, { size: 10.5, fill: C.grey });
 line([[1365, 840], [1365, 852], [874, 852], [874, 1005]]);
 const OFF = [
-  ['Skip-gram on ingredient lists', `${dimA} dims · 40 epochs · window ${WINDOW} = whole recipe`, 'models/ingredient_vectors.npz', `${shp(sh.ingredient_vectors)} · 182 KB`],
-  ['Tune queries, then lambdarank', `even-id half · ${fmt(TRAIN_Q)} train, ${fmt(VALID_Q)} held out`, 'models/ranker.txt', `${TREES} trees · 351 KB`],
-  ['MiniLM encodes each recipe', 'title, description, cuisine, course, ingredients', 'models/text_embeddings.npy', `${shp(sh.text_matrix)} float16 · 5.0 MB`],
+  ['Skip-gram on ingredient lists', `${dimA} dims · 40 epochs · window ${WINDOW} = whole recipe`, 'catalogue/ingredient_vectors.npz', `${shp(sh.ingredient_vectors)} · 1.9 MB`],
+  ['Tune queries, then lambdarank', `even-id sample · ${fmt(TRAIN_Q)} train, ${fmt(VALID_Q)} held out`, 'catalogue/ranker.txt', `${TREES} trees · 331 KB`],
+  ['MiniLM encodes each recipe', 'title, description, cuisine, course, ingredients', 'catalogue/text.npy', `${shp(sh.text_matrix)} int8 · 46 MB`],
 ];
 OFF.forEach(([a, b, f, s], i) => {
   const y = 862 + i * 60;

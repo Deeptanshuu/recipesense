@@ -1,8 +1,8 @@
 {
   "catalogue": {
-    "recipes": 6521,
-    "ingredients": 1409,
-    "aliases": 198
+    "recipes": 238157,
+    "ingredients": 14486,
+    "aliases": 163
   },
   "ingredients_example": {
     "typed": [
@@ -18,7 +18,7 @@
         "canonical": "turmeric powder",
         "display": "Turmeric powder",
         "via": "alias",
-        "recipes_with_it": 2100
+        "recipes_with_it": 2538
       },
       {
         "typed": "paneer",
@@ -30,36 +30,68 @@
       {
         "typed": "palak",
         "canonical": "spinach leaf",
-        "display": "Spinach Leaves",
+        "display": "Spinach leaves",
         "via": "alias",
-        "recipes_with_it": 152
+        "recipes_with_it": 519
       },
       {
         "typed": "green chilly",
         "canonical": "green chilli",
         "display": "Green Chillies",
         "via": "spelling and plural folding",
-        "recipes_with_it": 2063
+        "recipes_with_it": 2418
       },
       {
         "typed": "tomatoe",
         "canonical": "tomato",
-        "display": "Tomato",
-        "via": "n-gram fuzzy (0.81)",
-        "recipes_with_it": 1232
+        "display": "Tomatoes",
+        "via": "closest spelling (0.92)",
+        "recipes_with_it": 13182
       }
     ],
-    "candidates": 98,
+    "candidates": 114,
     "n_features": 18,
     "top": [
       {
         "id": 2121,
         "title": "Palak Paneer Recipe | Cottage Cheese In Spinach Gravy",
         "total_time": 60,
-        "image": "https://www.archanaskitchen.com/images/archanaskitchen/0-Archanas-Kitchen-Recipes/2020/Palak_Paneer_Recipe_2_1600.jpg",
+        "image": "",
         "veg": true,
         "cuisine": "Punjabi",
         "course": "Dinner",
+        "palette": [
+          {
+            "name": "Spinach leaves",
+            "color": "#47734a",
+            "weight": 26
+          },
+          {
+            "name": "Paneer",
+            "color": "#e9dcb6",
+            "weight": 22
+          },
+          {
+            "name": "Fresh cream",
+            "color": "#efe2c2",
+            "weight": 16
+          },
+          {
+            "name": "Tomatoes",
+            "color": "#c65a41",
+            "weight": 13
+          },
+          {
+            "name": "Cumin powder",
+            "color": "#96714a",
+            "weight": 13
+          },
+          {
+            "name": "Turmeric powder",
+            "color": "#d6a028",
+            "weight": 10
+          }
+        ],
         "score": 1.0,
         "matched": [
           "turmeric powder",
@@ -71,48 +103,46 @@
         "n_ingredients": 16
       },
       {
-        "id": 4055,
-        "title": "Palak Paneer Bhurji Recipe -Spiced Cottage Cheese Scramble With Spinach Recipe",
-        "total_time": 45,
-        "image": "https://www.archanaskitchen.com/images/archanaskitchen/0-Archanas-Kitchen-Recipes/2016/oct-6/Palak_Paneer_Bhurji_Recipe_Spice_Cottage_Cheese_Scramble_Serve_with_Toasted_Pav-2.jpg",
-        "veg": true,
-        "cuisine": "North Indian Recipes",
-        "course": "",
-        "score": 0.8909,
-        "matched": [
-          "paneer",
-          "spinach leaf",
-          "green chilli",
-          "tomato"
-        ],
-        "n_ingredients": 13
-      },
-      {
-        "id": 4089,
-        "title": "Methi Chaman Recipe -Paneer In Dark Leafy Greens Based Gravy",
-        "total_time": 40,
-        "image": "https://www.archanaskitchen.com/images/archanaskitchen/1-Author/divya_shivaraman/Methi_Chaman_recipe-edited.jpg",
-        "veg": true,
-        "cuisine": "North Indian Recipes",
-        "course": "Side Dish",
-        "score": 0.8454,
-        "matched": [
-          "turmeric powder",
-          "paneer",
-          "spinach leaf",
-          "green chilli"
-        ],
-        "n_ingredients": 13
-      },
-      {
         "id": 4054,
         "title": "Palak Paneer Kathi Roll Recipe -High Protein Spinach Cottage Cheese Wraps Recipe",
         "total_time": 45,
-        "image": "https://www.archanaskitchen.com/images/archanaskitchen/0-Archanas-Kitchen-Recipes/2016/oct-6/Palak_Paneer_Khati_Roll_High_Protein_Spinach_Cottage_Cheese_Wraps-2.jpg",
+        "image": "",
         "veg": true,
         "cuisine": "Indian",
         "course": "Snack",
-        "score": 0.8428,
+        "palette": [
+          {
+            "name": "Roasted tomato pasta sauce",
+            "color": "#b9523a",
+            "weight": 23
+          },
+          {
+            "name": "Spinach leaves",
+            "color": "#47734a",
+            "weight": 22
+          },
+          {
+            "name": "Paneer",
+            "color": "#e9dcb6",
+            "weight": 17
+          },
+          {
+            "name": "Whole wheat flour",
+            "color": "#d2b888",
+            "weight": 15
+          },
+          {
+            "name": "English Mustard Sauce",
+            "color": "#cda63c",
+            "weight": 13
+          },
+          {
+            "name": "Tomatoes",
+            "color": "#c65a41",
+            "weight": 10
+          }
+        ],
+        "score": 0.9053,
         "matched": [
           "turmeric powder",
           "paneer",
@@ -123,36 +153,200 @@
         "n_ingredients": 16
       },
       {
-        "id": 852,
-        "title": "Whole Wheat Spinach Paneer Lifafa Paratha Recipe",
-        "total_time": 65,
-        "image": "https://www.archanaskitchen.com/images/archanaskitchen/1-Author/Jyothi_Rajesh/Whole_Wheat_Spinach_Paneer_Lifafa_Paratha.jpg",
-        "veg": false,
-        "cuisine": "Indian",
-        "course": "Lunch",
-        "score": 0.7483,
+        "id": 4089,
+        "title": "Methi Chaman Recipe -Paneer In Dark Leafy Greens Based Gravy",
+        "total_time": 40,
+        "image": "",
+        "veg": true,
+        "cuisine": "North Indian Recipes",
+        "course": "Side Dish",
+        "palette": [
+          {
+            "name": "Methi Leaves",
+            "color": "#527a45",
+            "weight": 27
+          },
+          {
+            "name": "Spinach leaves",
+            "color": "#47734a",
+            "weight": 22
+          },
+          {
+            "name": "Paneer",
+            "color": "#e9dcb6",
+            "weight": 19
+          },
+          {
+            "name": "Fresh cream",
+            "color": "#efe2c2",
+            "weight": 15
+          },
+          {
+            "name": "Turmeric powder",
+            "color": "#d6a028",
+            "weight": 9
+          },
+          {
+            "name": "Green Chillies",
+            "color": "#8fae52",
+            "weight": 8
+          }
+        ],
+        "score": 0.6276,
         "matched": [
+          "turmeric powder",
           "paneer",
           "spinach leaf",
           "green chilli"
         ],
-        "n_ingredients": 12
+        "n_ingredients": 13
       },
       {
-        "id": 4676,
-        "title": "Palak Paneer Stuffed Paratha Recipe",
-        "total_time": 55,
-        "image": "https://www.archanaskitchen.com/images/archanaskitchen/0-Archanas-Kitchen-Recipes/2017/21-feb/Palak_Paratha_Stuffed_With_Paneer_Recipe-1.jpg",
+        "id": 4055,
+        "title": "Palak Paneer Bhurji Recipe -Spiced Cottage Cheese Scramble With Spinach Recipe",
+        "total_time": 45,
+        "image": "",
         "veg": true,
-        "cuisine": "Indian",
-        "course": "Indian Breakfast",
-        "score": 0.6846,
+        "cuisine": "North Indian Recipes",
+        "course": "",
+        "palette": [
+          {
+            "name": "Spinach leaves",
+            "color": "#47734a",
+            "weight": 27
+          },
+          {
+            "name": "Paneer",
+            "color": "#e9dcb6",
+            "weight": 24
+          },
+          {
+            "name": "Amchur",
+            "color": "#c7ab72",
+            "weight": 14
+          },
+          {
+            "name": "Tomatoes",
+            "color": "#c65a41",
+            "weight": 14
+          },
+          {
+            "name": "Red Chilli powder",
+            "color": "#b0412f",
+            "weight": 11
+          },
+          {
+            "name": "Green Chillies",
+            "color": "#8fae52",
+            "weight": 10
+          }
+        ],
+        "score": 0.5724,
         "matched": [
           "paneer",
           "spinach leaf",
-          "green chilli"
+          "green chilli",
+          "tomato"
         ],
-        "n_ingredients": 11
+        "n_ingredients": 13
+      },
+      {
+        "id": 3773,
+        "title": "Palak Paneer Recipe - Spinach Paneer Recipe",
+        "total_time": 60,
+        "image": "",
+        "veg": true,
+        "cuisine": "Punjabi",
+        "course": "Dinner",
+        "palette": [
+          {
+            "name": "Paneer",
+            "color": "#e9dcb6",
+            "weight": 24
+          },
+          {
+            "name": "Spinach",
+            "color": "#47734a",
+            "weight": 24
+          },
+          {
+            "name": "Tomatoes",
+            "color": "#c65a41",
+            "weight": 15
+          },
+          {
+            "name": "Cream",
+            "color": "#efe2c2",
+            "weight": 14
+          },
+          {
+            "name": "Cumin powder",
+            "color": "#96714a",
+            "weight": 13
+          },
+          {
+            "name": "Turmeric powder",
+            "color": "#d6a028",
+            "weight": 10
+          }
+        ],
+        "score": 0.4529,
+        "matched": [
+          "turmeric powder",
+          "paneer",
+          "green chilli",
+          "tomato"
+        ],
+        "n_ingredients": 14
+      },
+      {
+        "id": 1746,
+        "title": "Spiced Turnips with Spinach Recipe",
+        "total_time": 75,
+        "image": "",
+        "veg": true,
+        "cuisine": "Indian",
+        "course": "Lunch",
+        "palette": [
+          {
+            "name": "Turnips",
+            "color": "#d6b77a",
+            "weight": 28
+          },
+          {
+            "name": "Spinach leaves",
+            "color": "#47734a",
+            "weight": 26
+          },
+          {
+            "name": "Tomatoes",
+            "color": "#c65a41",
+            "weight": 14
+          },
+          {
+            "name": "Red Chilli powder",
+            "color": "#b0412f",
+            "weight": 12
+          },
+          {
+            "name": "Turmeric powder",
+            "color": "#d6a028",
+            "weight": 11
+          },
+          {
+            "name": "Coriander Leaves",
+            "color": "#6f9a56",
+            "weight": 9
+          }
+        ],
+        "score": 0.4252,
+        "matched": [
+          "turmeric powder",
+          "spinach leaf",
+          "green chilli",
+          "tomato"
+        ],
+        "n_ingredients": 14
       }
     ]
   },
@@ -163,61 +357,238 @@
         "id": 1346,
         "title": "Creamed Spinach Recipe",
         "total_time": 25,
-        "image": "https://www.archanaskitchen.com/images/archanaskitchen/1-Author/madhulia/Creamed_Spinach.jpg",
+        "image": "",
         "veg": true,
         "cuisine": "Italian Recipes",
         "course": "Side Dish",
-        "score": 0.7439
+        "palette": [
+          {
+            "name": "Spinach leaves",
+            "color": "#47734a",
+            "weight": 36
+          },
+          {
+            "name": "Mustard powder",
+            "color": "#d6a028",
+            "weight": 17
+          },
+          {
+            "name": "All-purpose flour",
+            "color": "#eae2cc",
+            "weight": 14
+          },
+          {
+            "name": "Cheddar cheese",
+            "color": "#e3ad4c",
+            "weight": 13
+          },
+          {
+            "name": "Milk",
+            "color": "#efe8d6",
+            "weight": 11
+          },
+          {
+            "name": "Whole Black Peppercorns",
+            "color": "#4b413b",
+            "weight": 9
+          }
+        ],
+        "score": 0.6863
       },
       {
-        "id": 1746,
-        "title": "Spiced Turnips with Spinach Recipe",
+        "id": 1128133,
+        "title": "Creamed Spinach with Jalapenos",
         "total_time": 75,
-        "image": "https://www.archanaskitchen.com/images/archanaskitchen/1-Author/Aarti_Sharma/Turnips_with_Spinach.jpg",
+        "image": "",
+        "veg": true,
+        "cuisine": "",
+        "course": "Side Dish",
+        "palette": [
+          {
+            "name": "Monterey jack pepper cheese",
+            "color": "#eadfc3",
+            "weight": 37
+          },
+          {
+            "name": "Frozen spinach",
+            "color": "#4d7650",
+            "weight": 30
+          },
+          {
+            "name": "Flour",
+            "color": "#dccaa2",
+            "weight": 12
+          },
+          {
+            "name": "Jalapeno pepper",
+            "color": "#8fae52",
+            "weight": 10
+          },
+          {
+            "name": "Garlic cloves",
+            "color": "#d8c39a",
+            "weight": 6
+          },
+          {
+            "name": "Onion",
+            "color": "#c79aa0",
+            "weight": 5
+          }
+        ],
+        "score": 0.6843
+      },
+      {
+        "id": 1084054,
+        "title": "Crispy Spinach",
+        "total_time": 35,
+        "image": "",
         "veg": true,
         "cuisine": "Indian",
-        "course": "Lunch",
-        "score": 0.6913
-      },
-      {
-        "id": 4062,
-        "title": "Spinach Corn Sabzi Recipe",
-        "total_time": 30,
-        "image": "https://www.archanaskitchen.com/images/archanaskitchen/1-Author/pooja/Spinach_Corn_Subji_1600.jpg",
-        "veg": true,
-        "cuisine": "North Indian Recipes",
-        "course": "Dinner",
-        "score": 0.6845
-      },
-      {
-        "id": 1555,
-        "title": "Sauteed Spinach With Garlic And Cheese Recipe",
-        "total_time": 15,
-        "image": "https://www.archanaskitchen.com/images/archanaskitchen/1-Author/nithya.anantham/Sauteed_Spinach_With_Garlic_and_Cheese_Recipe.jpg",
-        "veg": true,
-        "cuisine": "European",
         "course": "Appetizer",
-        "score": 0.681
+        "palette": [
+          {
+            "name": "Spinach",
+            "color": "#47734a",
+            "weight": 49
+          },
+          {
+            "name": "Sesame seeds",
+            "color": "#dccfa8",
+            "weight": 30
+          },
+          {
+            "name": "Other ingredients",
+            "color": "#cdc6b8",
+            "weight": 21
+          }
+        ],
+        "score": 0.6838
       },
       {
-        "id": 5702,
-        "title": "Spinach Salad Recipe With Boiled Eggs And Mushrooms",
-        "total_time": 35,
-        "image": "https://www.archanaskitchen.com/images/archanaskitchen/1-Author/Divya_Shivaraman_/Spinach_Salad_with_Boiled_Eggs_and_Mushrooms.jpg",
-        "veg": false,
-        "cuisine": "Continental",
-        "course": "Dinner",
-        "score": 0.6553
-      },
-      {
-        "id": 2226,
-        "title": "White Beans And Spinach Enchiladas Recipe With Spicy Jalapeno Sauce",
-        "total_time": 60,
-        "image": "https://www.archanaskitchen.com/images/archanaskitchen/1-Author/Divya_Shivaraman_/White_Beans_and_Spinach_Enchiladas_with_spicy_jalapeo_sauce.jpg",
+        "id": 1256190,
+        "title": "Absolutely the Best Creamed Spinach",
+        "total_time": 40,
+        "image": "",
         "veg": true,
-        "cuisine": "Mexican",
-        "course": "Dinner",
-        "score": 0.6553
+        "cuisine": "",
+        "course": "Side Dish",
+        "palette": [
+          {
+            "name": "Asadero cheese",
+            "color": "#eadfc3",
+            "weight": 53
+          },
+          {
+            "name": "Fresh spinach",
+            "color": "#4d7650",
+            "weight": 22
+          },
+          {
+            "name": "All-purpose flour",
+            "color": "#eae2cc",
+            "weight": 11
+          },
+          {
+            "name": "White pepper",
+            "color": "#8f6a45",
+            "weight": 6
+          },
+          {
+            "name": "Unsalted butter",
+            "color": "#e8cc74",
+            "weight": 4
+          },
+          {
+            "name": "Garlic cloves",
+            "color": "#d8c39a",
+            "weight": 4
+          }
+        ],
+        "score": 0.6752
+      },
+      {
+        "id": 1077934,
+        "title": "Spicy Fried Spinach",
+        "total_time": 20,
+        "image": "",
+        "veg": true,
+        "cuisine": "Indian",
+        "course": "Side Dish",
+        "palette": [
+          {
+            "name": "Fresh spinach",
+            "color": "#4d7650",
+            "weight": 34
+          },
+          {
+            "name": "Black cumin seeds",
+            "color": "#8f6a45",
+            "weight": 17
+          },
+          {
+            "name": "Ground turmeric",
+            "color": "#d6a028",
+            "weight": 16
+          },
+          {
+            "name": "Fresh ginger",
+            "color": "#d8c39a",
+            "weight": 12
+          },
+          {
+            "name": "Chili powder",
+            "color": "#b0412f",
+            "weight": 11
+          },
+          {
+            "name": "Ghee",
+            "color": "#e4c260",
+            "weight": 10
+          }
+        ],
+        "score": 0.673
+      },
+      {
+        "id": 1174916,
+        "title": "Spinach Madelaine",
+        "total_time": 55,
+        "image": "",
+        "veg": false,
+        "cuisine": "",
+        "course": "Side Dish",
+        "palette": [
+          {
+            "name": "Frozen chopped spinach",
+            "color": "#4d7650",
+            "weight": 30
+          },
+          {
+            "name": "Evaporated milk",
+            "color": "#eadfc3",
+            "weight": 20
+          },
+          {
+            "name": "Jalapeno pepper cheese",
+            "color": "#8fae52",
+            "weight": 20
+          },
+          {
+            "name": "Flour",
+            "color": "#dccaa2",
+            "weight": 13
+          },
+          {
+            "name": "Cayenne pepper",
+            "color": "#b3452e",
+            "weight": 9
+          },
+          {
+            "name": "Worcestershire sauce",
+            "color": "#a37c56",
+            "weight": 8
+          }
+        ],
+        "score": 0.6642
       }
     ]
   },
@@ -226,83 +597,180 @@
     "source_id": 2121,
     "top": [
       {
-        "id": 4055,
-        "title": "Palak Paneer Bhurji Recipe -Spiced Cottage Cheese Scramble With Spinach Recipe",
-        "total_time": 45,
-        "image": "https://www.archanaskitchen.com/images/archanaskitchen/0-Archanas-Kitchen-Recipes/2016/oct-6/Palak_Paneer_Bhurji_Recipe_Spice_Cottage_Cheese_Scramble_Serve_with_Toasted_Pav-2.jpg",
-        "veg": true,
-        "cuisine": "North Indian Recipes",
-        "course": "",
-        "score": 0.8784
-      },
-      {
         "id": 3773,
         "title": "Palak Paneer Recipe - Spinach Paneer Recipe",
         "total_time": 60,
-        "image": "https://www.archanaskitchen.com/images/archanaskitchen/Indian_Vegetables_Gravy/Palak_Paneer_Recipe_North_Indian_Punjabi-3.jpg",
+        "image": "",
         "veg": true,
         "cuisine": "Punjabi",
         "course": "Dinner",
-        "score": 0.8645
+        "palette": [
+          {
+            "name": "Paneer",
+            "color": "#e9dcb6",
+            "weight": 24
+          },
+          {
+            "name": "Spinach",
+            "color": "#47734a",
+            "weight": 24
+          },
+          {
+            "name": "Tomatoes",
+            "color": "#c65a41",
+            "weight": 15
+          },
+          {
+            "name": "Cream",
+            "color": "#efe2c2",
+            "weight": 14
+          },
+          {
+            "name": "Cumin powder",
+            "color": "#96714a",
+            "weight": 13
+          },
+          {
+            "name": "Turmeric powder",
+            "color": "#d6a028",
+            "weight": 10
+          }
+        ],
+        "score": 0.908
       },
       {
-        "id": 4201,
-        "title": "Hariyali Paneer Tikka Masala Gravy Recipe -No Onion No Garlic Recipe",
+        "id": 1357820,
+        "title": "Cottage Cheese in Spinach Gravy Palak Paneer",
+        "total_time": 35,
+        "image": "",
+        "veg": true,
+        "cuisine": "Indian",
+        "course": "Side Dish",
+        "palette": [
+          {
+            "name": "Cottage cheese",
+            "color": "#eadfc3",
+            "weight": 27
+          },
+          {
+            "name": "Green chili peppers",
+            "color": "#b0412f",
+            "weight": 23
+          },
+          {
+            "name": "Baby spinach",
+            "color": "#47734a",
+            "weight": 22
+          },
+          {
+            "name": "Ginger Garlic Paste",
+            "color": "#d6c090",
+            "weight": 11
+          },
+          {
+            "name": "Tomatoes",
+            "color": "#c65a41",
+            "weight": 11
+          },
+          {
+            "name": "Cumin seeds",
+            "color": "#96714a",
+            "weight": 6
+          }
+        ],
+        "score": 0.8996
+      },
+      {
+        "id": 4055,
+        "title": "Palak Paneer Bhurji Recipe -Spiced Cottage Cheese Scramble With Spinach Recipe",
         "total_time": 45,
-        "image": "https://www.archanaskitchen.com/images/archanaskitchen/0-Archanas-Kitchen-Recipes/2016/sept-19/Hariyali_Paneer_Tikka_Masala_Recipe_Gravy_North_Indian_Sabzi-3.jpg",
+        "image": "",
         "veg": true,
         "cuisine": "North Indian Recipes",
-        "course": "Lunch",
-        "score": 0.8463
+        "course": "",
+        "palette": [
+          {
+            "name": "Spinach leaves",
+            "color": "#47734a",
+            "weight": 27
+          },
+          {
+            "name": "Paneer",
+            "color": "#e9dcb6",
+            "weight": 24
+          },
+          {
+            "name": "Amchur",
+            "color": "#c7ab72",
+            "weight": 14
+          },
+          {
+            "name": "Tomatoes",
+            "color": "#c65a41",
+            "weight": 14
+          },
+          {
+            "name": "Red Chilli powder",
+            "color": "#b0412f",
+            "weight": 11
+          },
+          {
+            "name": "Green Chillies",
+            "color": "#8fae52",
+            "weight": 10
+          }
+        ],
+        "score": 0.8599
       }
     ]
   },
   "shapes": {
     "ingredient_vectors": [
-      1409,
+      14486,
       64
     ],
     "recipe_ingredient_vectors": [
-      6521,
+      238157,
       64
     ],
     "text_matrix": [
-      6521,
-      384
+      238157,
+      192
     ],
     "combined": [
-      6521,
-      448
+      238157,
+      256
     ]
   },
   "api_timings": {
-    "how": "The container from the Dockerfile on port 7861, waited for /api/health ready, then the same request 6 times; execution_time is the server-side ms the API returns. First call dropped as warm-up, median of the other 5 is drawn.",
+    "how": "python -m server.app on port 5057 with the packed catalogue, waited for /api/health ready, then the same request 6 times; execution_time is the server-side ms the API returns. First call dropped as warm-up, median of the other 5 is drawn.",
     "recommend_ms": [
-      3.21,
-      2.39,
-      2.63,
-      2.88,
-      2.2,
-      1.96
+      30.63,
+      23.37,
+      21.27,
+      23.27,
+      23.53,
+      24.8
     ],
-    "recommend_median_ms": 2.39,
+    "recommend_median_ms": 23.37,
     "search_ms": [
-      2.93,
-      2.84,
-      1.94,
-      1.95,
-      1.84,
-      1.83
+      23.67,
+      19.73,
+      23.69,
+      24.03,
+      24.85,
+      21.37
     ],
-    "search_median_ms": 1.94,
-    "similar_2121_ms": [
-      1.37,
-      1.37,
-      0.89,
-      0.82,
-      0.77,
-      0.65
-    ]
+    "search_median_ms": 23.69,
+    "similar_ms": [
+      27.69,
+      27.76,
+      27.55,
+      18.67,
+      15.46,
+      26.27
+    ],
+    "similar_median_ms": 26.27
   },
   "search_eval": {
     "how": "python -m recsys.eval_semantic --out <file> (test split); hit@6 per searcher and query style",

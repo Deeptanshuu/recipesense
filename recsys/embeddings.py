@@ -11,6 +11,7 @@ character n-gram matcher instead of being dropped.
 """
 from __future__ import annotations
 
+import difflib
 import json
 import zlib
 from pathlib import Path
@@ -37,6 +38,8 @@ SEED = 7
 # person can type has a vector.
 W2V_PARAMS = {"vector_size": 64, "epochs": 40, "min_count": 1, "negative": 10, "sample": 0.001}
 FUZZY_THRESHOLD = 0.7
+SPELLING_CUTOFF = 0.8  # difflib ratio: one slip in a five-letter word
+MIN_COMMON = 20
 OVERLAP_WEIGHT = 0.4
 
 
@@ -103,10 +106,17 @@ def load_vectors(path: str | Path = VECTORS_PATH) -> IngredientVectors:
 
 
 class FuzzyMatcher:
-    """Nearest canonical ingredient or alias by character n-gram TF-IDF.
+    """Nearest canonical ingredient or alias for a string the vocabulary misses.
 
-    Catches what the vocabulary misses: "curry leave", "green chilly",
-    "tomatoe". Below the threshold the string is left unresolved.
+    Two passes. Spelling first: the closest common ingredient by matching
+    characters (difflib), which is what catches "chiken", "tomatoe" and
+    "brocolli". Then character n-gram TF-IDF over every name and alias, which
+    catches word-level slips: "curry leave", "green chilly". Below the
+    thresholds the string is left unresolved.
+
+    The spelling pass only looks at ingredients in at least ``MIN_COMMON``
+    recipes. A big catalogue holds other people's typos too, and "tomatoe"
+    should become "tomato", not the rare "dried tomatoe".
     """
 
     def __init__(self, vocab: Vocabulary, threshold: float = FUZZY_THRESHOLD):
@@ -115,16 +125,29 @@ class FuzzyMatcher:
         self.threshold = threshold
         self.vectorizer = TfidfVectorizer(analyzer="char_wb", ngram_range=(2, 4), sublinear_tf=True)
         self.matrix = self.vectorizer.fit_transform(names)
+        self._counts = vocab.counts
+        self._common = [k for k, n in vocab.counts.items() if n >= MIN_COMMON]
         self._cache: dict[str, tuple[str, float] | None] = {}
+
+    def _spelling(self, key: str) -> tuple[str, float] | None:
+        close = difflib.get_close_matches(key, self._common, n=5, cutoff=SPELLING_CUTOFF)
+        if not close:
+            return None
+        ratio = {c: difflib.SequenceMatcher(None, key, c).ratio() for c in close}
+        best = max(close, key=lambda c: (round(ratio[c], 2), self._counts[c]))
+        return best, ratio[best]
 
     def nearest(self, text: str) -> tuple[str, float] | None:
         key = canonical(text)
         if not key:
             return None
         if key not in self._cache:
-            sims = (self.matrix @ self.vectorizer.transform([key]).T).toarray().ravel()
-            best = int(sims.argmax())
-            self._cache[key] = (self.targets[best], float(sims[best])) if sims[best] > 0 else None
+            hit = self._spelling(key)
+            if hit is None:
+                sims = (self.matrix @ self.vectorizer.transform([key]).T).toarray().ravel()
+                best = int(sims.argmax())
+                hit = (self.targets[best], float(sims[best])) if sims[best] > 0 else None
+            self._cache[key] = hit
         return self._cache[key]
 
     def match(self, text: str) -> str | None:

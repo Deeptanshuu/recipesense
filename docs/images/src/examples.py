@@ -38,7 +38,7 @@ def how(item):
         return vocab.resolve(item), "alias"
     hit = idx.fuzzy.nearest(item)
     if hit and hit[1] >= idx.fuzzy.threshold:
-        return hit[0], f"n-gram fuzzy ({hit[1]:.2f})"
+        return hit[0], f"closest spelling ({hit[1]:.2f})" if idx.fuzzy._spelling(key) else f"n-gram fuzzy ({hit[1]:.2f})"
     return None, "unresolved"
 
 
@@ -52,7 +52,7 @@ cands, X, _ = learned.features.build(TYPED)
 picks = rec.recommend(TYPED, limit=6)
 for p in picks:
     pos = rec._pos[p["id"]]
-    have = set(rec.recipes.iloc[pos]["ingredients"])
+    have = set(rec.store.keys_of(pos))
     p["matched"] = [r["canonical"] for r in resolved if r["canonical"] in have]
     p["n_ingredients"] = len(have)
 
@@ -60,7 +60,7 @@ search = rec.search(TEXT, limit=6)
 similar = rec.similar(picks[0]["id"], limit=3)
 
 out = {
-    "catalogue": {"recipes": len(rec.recipes), "ingredients": len(vocab.counts),
+    "catalogue": {"recipes": rec.store.n, "ingredients": len(vocab.counts),
                   "aliases": len(vocab.alias_to_key)},
     "ingredients_example": {"typed": TYPED, "resolved": resolved, "candidates": int(len(cands)),
                             "n_features": int(X.shape[1]), "top": picks},

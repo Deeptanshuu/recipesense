@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="docs/images/banner.png" alt="RecipeSense: type what is in your kitchen and get recipes that use it. haldi, paneer, palak, green chilly, tomatoe returns Palak Paneer in 2.39 ms" width="100%">
+<img src="docs/images/banner.png" alt="RecipeSense: type what is in your kitchen and get recipes that use it. haldi, paneer, palak, green chilly, tomatoe returns Palak Paneer in 23 ms" width="100%">
 
 <br>
 <br>
@@ -16,7 +16,8 @@
 ## What it does
 
 **Search by ingredients, typed the way people type them.** "haldi", "turmeric powders" and
-"Turmeric powder (Haldi)" are one ingredient. Typed names are resolved to canonical ones, three
+"Turmeric powder (Haldi)" are one ingredient, and "chiken" still finds chicken. Typed names are
+resolved to canonical ones, three
 cheap rankers nominate candidates, and a LightGBM `lambdarank` model re-orders them. Pick the
 ranker yourself and the app shows the server's measured time next to the previous one.
 
@@ -50,16 +51,16 @@ for r in rec.similar(210, limit=3):   # 210 is Paneer And Spinach Puff
 
 ```
 1.00   40 min  Methi Chaman Recipe -Paneer In Dark Leafy Greens Based Gravy
-0.93   45 min  Palak Paneer Kathi Roll Recipe -High Protein Spinach Cottage Cheese Wraps Recipe
-0.91   60 min  Palak Paneer Recipe | Cottage Cheese In Spinach Gravy
+0.88   45 min  Palak Paneer Kathi Roll Recipe -High Protein Spinach Cottage Cheese Wraps Recipe
+0.82   60 min  Palak Paneer Recipe | Cottage Cheese In Spinach Gravy
 
-0.74  Creamed Spinach Recipe
-0.69  Spiced Turnips with Spinach Recipe
-0.68  Spinach Corn Sabzi Recipe
+0.69  Creamed Spinach Recipe
+0.68  Creamed Spinach with Jalapenos
+0.68  Crispy Spinach
 
 0.83  Paneer Cheese Puffs Recipe
-0.83  Spinach and Paneer Cornmeal Roll Recipe
-0.81  Spinach Paneer Kofta Curry Recipe
+0.80  Spinach and Paneer Cornmeal Roll Recipe
+0.80  Spinach Paneer Kofta Curry Recipe
 ```
 
 | Detail | What to know |
@@ -68,11 +69,15 @@ for r in rec.similar(210, limit=3):   # 210 is Paneer And Spinach Puff
 | `score` | Scaled to 0..1 within a result list, then cuisine, course and like boosts are added. Compare within a list, not across lists |
 | `veg` | Uses a cleaned flag. "Vegetarian" rows that list meat or eggs are not vegetarian |
 | `liked` | A list of recipe ids. They shape the ranking and are left out of the results |
-| Ids | The row number in `data/recipes.csv` |
+| Ids | The row number in `data/recipes.csv` for the first dataset; 1,000,000 plus the Food.com id for the rest |
 
 ## How good is it
 
-There are no ratings or click logs, so the evaluation is known-item search. A query is built from
+The app serves 238,157 recipes: 6,521 Indian recipes with Hindi aliases, and 231,636 from Food.com
+(see [Data](#data)). The detailed comparison below is on the first set, where every ranker
+including brute force can be run on every query. The full catalogue is measured after it.
+
+There are no ratings or click logs behind the first set, so the evaluation is known-item search. A query is built from
 a held-out recipe's own ingredients, and a ranker scores well if that recipe comes back near the
 top. Recipes are split by id: half for tuning and training, half for reporting. 3,120 test queries
 per style. Source: [docs/results.json](docs/results.json).
@@ -97,7 +102,21 @@ Share of queries where the source recipe is in the top 6, the app's first page:
 
 Top-1 for the learned ranker is 80.5% / 85.5% / 95.3%, against 45.1% / 61.9% / 66.8% for TF-IDF.
 
-**Free-text search**, same split, about 3,100 queries per style:
+**On the full catalogue**, with models retrained on it, the same test on 1,367 queries per style
+built from held-out recipes of both sets. Thirty-six times more recipes to confuse the right one
+with, and the learned ranker holds its place:
+
+| Ranker | typed | exact | pantry |
+|---|---|---|---|
+| TF-IDF | 53.8% | 80.4% | 86.0% |
+| Ingredient overlap on cleaned names | 95.8% | **97.4%** | 95.1% |
+| Ingredient embeddings alone | 75.1% | 76.7% | 31.2% |
+| **Learned ranker** | **95.9%** | **97.4%** | **98.5%** |
+
+Top-1 for the learned ranker is 86.0% / 88.1% / 93.5%. Reproduce with
+`python -m recsys.evaluate --catalogue`.
+
+**Free-text search** on the first set, same split, about 3,100 queries per style:
 
 | Searcher | Recipe title, top 6 | Ingredient sentence, top 6 |
 |---|---|---|
@@ -129,8 +148,8 @@ cd recipesense
 pip install -r requirements-dev.txt
 ```
 
-Start the API on http://localhost:5000. The trained models are committed, so there is nothing to
-download:
+Start the API on http://localhost:5000. The packed catalogue and the trained models are committed,
+so there is nothing to download:
 
 ```bash
 python -m server.app
@@ -172,14 +191,15 @@ stopping. No test query is used for training or tuning.
 
 ## Under the hood
 
-<img src="docs/images/architecture.png" alt="Block diagram of one RecipeSense request. Five typed ingredients are resolved to canonical ids and scored by TF-IDF, ingredient overlap and ingredient embeddings; the top 50 of each become 98 candidates with 18 features that a 99-tree LightGBM ranker scores; filters and boosts give Palak Paneer first in 2.39 ms. Side panels show free-text search with MiniLM (1.94 ms), more-like-this over a joined 448-dim matrix (0.82 ms) and the files built offline" width="100%">
+<img src="docs/images/architecture.png" alt="Block diagram of one RecipeSense request. Five typed ingredients are resolved to canonical ids and scored by TF-IDF, ingredient overlap and ingredient embeddings; the top 50 of each become 114 candidates with 18 features that a 93-tree LightGBM ranker scores; filters and boosts give Palak Paneer first in 23 ms. Side panels show free-text search with MiniLM (24 ms), more-like-this over a joined 256-dim matrix (26 ms) and the files built offline" width="100%">
 
-Typed ingredients are resolved to canonical names, with a character n-gram fallback for
-misspellings. The overlap and embedding rankers work on those names, TF-IDF on the text as typed,
+Typed ingredients are resolved to canonical names, with a closest-spelling match and a character
+n-gram fallback for misspellings. The overlap and embedding rankers work on those names, TF-IDF on the text as typed,
 and each nominates 50 recipes. The learned
 ranker scores the union on 18 features, the strongest being each candidate's gap to the best
 overlap score for that query. Cuisine, course, vegetarian and likes are applied last. Free text
-skips all of that: the query is embedded once and compared against a 6,521 x 384 matrix.
+skips all of that: the query is embedded once, cut to 192 dimensions and compared against a
+238,157 x 192 matrix.
 
 | Doc | Covers |
 |---|---|
@@ -191,8 +211,8 @@ recsys/     data cleaning, baselines, embeddings, learned ranker, text search, e
 server/     Flask routes over one Recommender object
 api/        Vercel entry point
 web/        React, Vite and Tailwind front end
-models/     ingredient vectors (180 KB), ranker (350 KB), text embeddings (5 MB), MiniLM (23 MB)
-data/       recipes.csv, 7,540 rows; catalogue/, both datasets packed for the API (130 MB)
+models/     MiniLM (23 MB), and the first dataset's vectors, ranker and text embeddings for the benchmark
+data/       recipes.csv, 7,540 rows; catalogue/, both datasets packed for the API with their models (138 MB)
 tests/      pytest suite
 ```
 
@@ -213,13 +233,10 @@ read on demand, text vectors cut to 192 dimensions, and ingredient vectors and a
 the full set. The API then starts in about 2 s. To rebuild it, put `RAW_recipes.csv` from the
 Kaggle page in `data/raw/kaggle/`.
 
-The measurements above are on the first dataset. On the packed catalogue, with queries built from
-1,500 held-out recipes, the learned ranker puts the source recipe in the top 6 for 95.9% of typed,
-97.4% of exact and 98.5% of pantry queries (overlap: 95.8%, 97.4%, 95.1%).
-
 ## Acknowledgements
 
 Recipes and photos: [Archana's Kitchen](https://www.archanaskitchen.com).
+Food.com recipes: [Food.com Recipes and Interactions](https://www.kaggle.com/datasets/shuyangli94/food-com-recipes-and-user-interactions) (Li et al., EMNLP 2019).
 Text encoder: [all-MiniLM-L6-v2](https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2) (Reimers and Gurevych), the 8-bit ONNX build, run with ONNX Runtime.
 Ingredient vectors: gensim Word2Vec. Ranker: LightGBM.
 
