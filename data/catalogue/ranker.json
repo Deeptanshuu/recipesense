@@ -1,0 +1,72 @@
+{
+  "best_iteration": 93,
+  "valid": {
+    "ndcg@1": 0.919750231267345,
+    "ndcg@6": 0.95509931530624
+  },
+  "train_queries": 17301,
+  "valid_queries": 4324,
+  "rows": 2758505,
+  "candidate_recall": 0.9886618205093037,
+  "params": {
+    "objective": "lambdarank",
+    "metric": "ndcg",
+    "eval_at": [
+      1,
+      6
+    ],
+    "learning_rate": 0.05,
+    "num_leaves": 31,
+    "min_data_in_leaf": 50,
+    "feature_fraction": 0.8,
+    "bagging_fraction": 0.8,
+    "bagging_freq": 1,
+    "lambdarank_truncation_level": 20,
+    "seed": 7,
+    "deterministic": true,
+    "force_row_wise": true,
+    "num_threads": 4,
+    "verbosity": -1
+  },
+  "features": [
+    "emb_cos",
+    "tfidf_cos",
+    "overlap",
+    "matched",
+    "query_cov",
+    "recipe_cov",
+    "idf_query_cov",
+    "idf_recipe_cov",
+    "soft_cov",
+    "recipe_len",
+    "extra",
+    "n_items",
+    "n_keys",
+    "n_missing",
+    "emb_gap",
+    "tfidf_gap",
+    "overlap_gap",
+    "soft_gap"
+  ],
+  "n_candidates": 50,
+  "importance_gain": {
+    "emb_cos": 2067.5,
+    "tfidf_cos": 1329.7,
+    "overlap": 22759.1,
+    "matched": 74867.4,
+    "query_cov": 18125.4,
+    "recipe_cov": 24645.7,
+    "idf_query_cov": 7242.8,
+    "idf_recipe_cov": 4920.9,
+    "soft_cov": 2549.8,
+    "recipe_len": 3178.7,
+    "extra": 6056.4,
+    "n_items": 2896.9,
+    "n_keys": 1670.5,
+    "n_missing": 8.5,
+    "emb_gap": 3572.1,
+    "tfidf_gap": 19901.4,
+    "overlap_gap": 1853697.8,
+    "soft_gap": 122265.3
+  }
+}

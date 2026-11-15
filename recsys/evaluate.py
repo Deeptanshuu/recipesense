@@ -29,6 +29,7 @@ STYLES = ("typed", "exact", "pantry")
 TOP_K = 6  # the app's first page
 MIN_INGREDIENTS = 5
 N_COMMON = 150
+SAMPLE_SEED = 7
 
 
 @dataclass
@@ -71,15 +72,25 @@ def _raw_alias(raw: str, rng: np.random.Generator) -> str | None:
     return str(rng.choice(options)) if options else None
 
 
-def build_queries(recipes: pd.DataFrame, vocab: Vocabulary, split: str = "test") -> dict[str, list[Query]]:
-    """Queries for every recipe in the split, per style. Deterministic."""
+def build_queries(recipes: pd.DataFrame, vocab: Vocabulary, split: str = "test",
+                  sample: int | None = None) -> dict[str, list[Query]]:
+    """Queries for every recipe in the split, per style. Deterministic.
+
+    ``sample`` keeps that many recipes of the split, picked with a fixed seed.
+    The large catalogue needs it: every query scores every recipe.
+    """
     n = len(recipes)
     idf = {k: np.log(n / c) for k, c in vocab.counts.items()}
     common = [k for k, _ in vocab.counts.most_common(N_COMMON)]
     parity = 1 if split == "test" else 0
     out: dict[str, list[Query]] = {s: [] for s in STYLES}
+    chosen = None
+    if sample is not None:
+        in_split = np.flatnonzero(recipes["raw_id"].to_numpy() % 2 == parity)
+        if sample < len(in_split):
+            chosen = set(np.random.default_rng(SAMPLE_SEED).choice(in_split, size=sample, replace=False).tolist())
     for pos, row in enumerate(recipes.itertuples()):
-        if row.raw_id % 2 != parity:
+        if row.raw_id % 2 != parity or (chosen is not None and pos not in chosen):
             continue
         raws = list(dict.fromkeys(row.ingredients_raw))
         keys = [canonical(r) for r in raws]
@@ -161,12 +172,28 @@ def main() -> None:
     parser.add_argument("--split", default="test", choices=("test", "tune"))
     parser.add_argument("--rankers", nargs="*", help="subset of rankers to run")
     parser.add_argument("--out", help="write results as JSON")
+    parser.add_argument("--catalogue", action="store_true",
+                        help="measure the packed catalogue in data/catalogue (both datasets) with its own models")
+    parser.add_argument("--sample", type=int, help="recipes of the split to turn into queries (default: all, "
+                        "or 2000 with --catalogue)")
     args = parser.parse_args()
 
-    recipes = load_recipes()
-    vocab = Vocabulary.build(recipes)
-    queries = build_queries(recipes, vocab, args.split)
-    rankers = build_rankers(recipes, vocab, only=args.rankers)
+    if args.catalogue:
+        from .catalogue import Catalogue, load_sources
+
+        recipes = load_sources()
+        packed = Catalogue()
+        if len(packed) != len(recipes):
+            raise SystemExit("data/catalogue was built from other data; run python -m recsys.catalogue")
+        vocab = packed.vocab
+        names = args.rankers or ["tfidf", "overlap", "embedding", "learned"]
+        rankers = {name: packed.build_ranker(name) for name in names}
+        queries = build_queries(recipes, vocab, args.split, sample=args.sample or 2000)
+    else:
+        recipes = load_recipes()
+        vocab = Vocabulary.build(recipes)
+        queries = build_queries(recipes, vocab, args.split, sample=args.sample)
+        rankers = build_rankers(recipes, vocab, only=args.rankers)
     results = run(rankers, queries)
     print(f"{len(recipes)} recipes, {results['n'].iloc[0]} {args.split} queries per style\n")
     for metric in ("hit@1", f"hit@{TOP_K}", "mrr"):

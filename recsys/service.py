@@ -1,7 +1,8 @@
 """The recommender the API talks to.
 
 Loads the catalogue once, keeps every lookup in memory and builds rankers on
-first use. Learned, embedding and semantic parts are optional at run time: each
+first use. The catalogue is the packed one in ``data/catalogue/`` when it is
+there (see recsys.catalogue), else the first dataset read from its CSV. Learned, embedding and semantic parts are optional at run time: each
 is built inside try/except and the service falls back to TF-IDF when one fails.
 Brute force is not offered here; it is only an offline evaluation baseline.
 """
@@ -13,11 +14,15 @@ import numpy as np
 import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
 
+from . import catalogue
 from .data import Vocabulary, load_recipes, split_ingredients
 from .palette import Palette
 from .registry import build_rankers
 from .taxonomy import (COURSE_GROUPS, CUISINE_GROUPS, course_group, course_options, cuisine_groups,
                        cuisine_options, resolve_course, resolve_cuisines)
+
+# _pick sorts only this many of the best rows unless it runs out of them.
+PICK_POOL = 2000
 
 # Boosts are added to a ranker score that is scaled to 0..1, so a cuisine or
 # course match is worth 20 or 30 percent of a perfect ingredient match.
@@ -66,21 +71,84 @@ def _scale(scores: np.ndarray) -> np.ndarray:
     return (scores - low) / span if span > 0 else np.zeros_like(scores)
 
 
+class FrameStore:
+    """A catalogue held as a pandas frame: the first dataset, or the rows a
+    test passes in. Same surface as :class:`recsys.catalogue.Catalogue`."""
+
+    def __init__(self, recipes: pd.DataFrame):
+        self.recipes = df = recipes.reset_index(drop=True)
+        self.vocab = Vocabulary.build(df)
+        self.n = len(df)
+        self.ids = df["raw_id"].to_numpy()
+        self.veg = df["veg"].to_numpy(dtype=bool)
+        self.names = [str(n) for n in df["name"]]
+
+    def times(self, pos: int) -> tuple[int | None, int | None, int | None]:
+        row = self.recipes.iloc[pos]
+        return _minutes(row["prep_time"]), _minutes(row["cook_time"]), _minutes(row["total_time"])
+
+    def cuisine(self, pos: int) -> str:
+        return self.recipes["cuisine"].iat[pos]
+
+    def course(self, pos: int) -> str:
+        return self.recipes["course"].iat[pos]
+
+    def image(self, pos: int) -> str:
+        return self.recipes["image_url"].iat[pos]
+
+    def keys_of(self, pos: int) -> list[str]:
+        return self.recipes["ingredients"].iat[pos]
+
+    def detail(self, pos: int) -> tuple[str, str, str]:
+        row = self.recipes.iloc[pos]
+        names = str(row["ingredients_name"]) if pd.notna(row["ingredients_name"]) else ""
+        return row["description"], row["instructions"], names
+
+    def cuisine_masks(self) -> dict[str, np.ndarray]:
+        groups = [cuisine_groups(c) for c in self.recipes["cuisine"]]
+        return {g: np.array([g in s for s in groups]) for g in CUISINE_GROUPS}
+
+    def course_masks(self) -> dict[str, np.ndarray]:
+        courses = [course_group(c) for c in self.recipes["course"]]
+        return {g: np.array([c == g for c in courses]) for g in COURSE_GROUPS}
+
+    def options(self) -> dict:
+        return {"cuisines": cuisine_options(self.recipes), "courses": course_options(self.recipes)}
+
+    def build_ranker(self, name: str):
+        return build_rankers(self.recipes, self.vocab, only=[name])[name]
+
+    def semantic(self):
+        from .semantic import SemanticSearch
+
+        return SemanticSearch(self.recipes)
+
+    def name_search(self):
+        """TF-IDF over name and description. The search fallback."""
+        docs = [f"{n} {n} {d}" for n, d in zip(self.recipes["name"], self.recipes["description"])]
+        vec = TfidfVectorizer(stop_words="english", sublinear_tf=True)
+        return vec, vec.fit_transform(docs)
+
+
 class Recommender:
-    def __init__(self, recipes: pd.DataFrame | None = None, path=None):
-        self.recipes = load_recipes(path) if recipes is None else recipes.reset_index(drop=True)
-        self.vocab = Vocabulary.build(self.recipes)
-        df = self.recipes
-        self._pos = {int(i): p for p, i in enumerate(df["raw_id"])}
-        self._veg = df["veg"].to_numpy(dtype=bool)
-        self._palette = Palette(self.vocab, len(df))
-        self._card_rows = [{**self._card(row), "palette": self._palette.for_recipe(row.ingredients)}
-                           for row in df.itertuples()]
-        self._names = [str(n).strip().lower() for n in df["name"]]
-        groups = [cuisine_groups(c) for c in df["cuisine"]]
-        self._cuisine_mask = {g: np.array([g in s for s in groups]) for g in CUISINE_GROUPS}
-        courses = [course_group(c) for c in df["course"]]
-        self._course_mask = {g: np.array([c == g for c in courses]) for g in COURSE_GROUPS}
+    def __init__(self, recipes: pd.DataFrame | None = None, path=None, store=None):
+        if store is not None:
+            self.store = store
+        elif recipes is not None:
+            self.store = FrameStore(recipes)
+        elif path is None and catalogue.exists():
+            self.store = catalogue.Catalogue()
+        else:
+            self.store = FrameStore(load_recipes(path))
+        store = self.store
+        self.recipes = getattr(store, "recipes", None)
+        self.vocab = store.vocab
+        self._pos = {int(i): p for p, i in enumerate(store.ids)}
+        self._veg = np.asarray(store.veg, dtype=bool)
+        self._palette = Palette(self.vocab, store.n)
+        self._names = [n.strip().lower() for n in store.names]
+        self._cuisine_mask = store.cuisine_masks()
+        self._course_mask = store.course_masks()
         self._lock = threading.RLock()
         self._rankers: dict = {}
         self._failed: set[str] = set()
@@ -93,20 +161,21 @@ class Recommender:
 
     # ----- rows -----
 
-    @staticmethod
-    def _card(row) -> dict:
+    def _card(self, pos: int) -> dict:
+        store = self.store
         return {
-            "id": int(row.raw_id),
-            "title": row.name,
-            "total_time": _minutes(row.total_time),
-            "image": row.image_url,
-            "veg": bool(row.veg),
-            "cuisine": row.cuisine,
-            "course": row.course,
+            "id": int(store.ids[pos]),
+            "title": store.names[pos],
+            "total_time": store.times(pos)[2],
+            "image": store.image(pos),
+            "veg": bool(self._veg[pos]),
+            "cuisine": store.cuisine(pos),
+            "course": store.course(pos),
+            "palette": self._palette.for_recipe(store.keys_of(pos)),
         }
 
     def _cards(self, positions, scores) -> list[dict]:
-        return [{**self._card_rows[p], "score": round(float(s), 4)} for p, s in zip(positions, scores)]
+        return [{**self._card(int(p)), "score": round(float(s), 4)} for p, s in zip(positions, scores)]
 
     def _position(self, recipe_id: int) -> int:
         try:
@@ -116,20 +185,30 @@ class Recommender:
 
     def _pick(self, scores: np.ndarray, allowed: np.ndarray, limit: int, skip=()) -> tuple[list[int], list[float]]:
         """Best positions by score. Drops zeros, repeated titles and ``skip``."""
-        ok = allowed & (scores > 0)
-        cand = np.flatnonzero(ok)
-        order = cand[np.lexsort((cand, -scores[cand]))]
-        seen, pos, out = set(skip), [], []
-        for p in order:
-            name = self._names[p]
-            if name in seen:
-                continue
-            seen.add(name)
-            pos.append(int(p))
-            out.append(float(scores[p]))
-            if len(pos) >= limit:
-                break
-        return pos, out
+        cand = np.flatnonzero(allowed & (scores > 0))
+        pool = max(PICK_POOL, 4 * limit)
+        while True:
+            # A full sort of a big catalogue is slow, and the answer is near the top.
+            if len(cand) > pool:
+                kth = len(cand) - pool
+                bound = np.partition(scores[cand], kth)[kth]
+                part = cand[scores[cand] >= bound]
+            else:
+                part = cand
+            order = part[np.lexsort((part, -scores[part]))]
+            seen, pos, out = set(skip), [], []
+            for p in order:
+                name = self._names[p]
+                if name in seen:
+                    continue
+                seen.add(name)
+                pos.append(int(p))
+                out.append(float(scores[p]))
+                if len(pos) >= limit:
+                    break
+            if len(pos) >= limit or len(part) == len(cand):
+                return pos, out
+            pool *= 8
 
     # ----- models -----
 
@@ -144,7 +223,7 @@ class Recommender:
             if name in self._failed:
                 return None
             try:
-                self._rankers[name] = build_rankers(self.recipes, self.vocab, only=[name])[name]
+                self._rankers[name] = self.store.build_ranker(name)
             except Exception:
                 if name == FALLBACK_MODEL:
                     raise
@@ -259,8 +338,7 @@ class Recommender:
         return self._cards(pos, vals)
 
     def recipe(self, recipe_id: int) -> dict:
-        row = self.recipes.iloc[self._position(recipe_id)]
-        return self._detail(row)
+        return self._detail(self._position(recipe_id))
 
     def similar(self, recipe_id: int, limit: int = 12) -> list[dict]:
         pos = self._position(recipe_id)
@@ -278,33 +356,32 @@ class Recommender:
 
     def meta(self) -> dict:
         if self._meta is None:
-            self._meta = {
-                "cuisines": cuisine_options(self.recipes),
-                "courses": course_options(self.recipes),
-                "recipes": len(self.recipes),
-            }
+            self._meta = {**self.store.options(), "recipes": self.store.n}
         return {**self._meta, "models": self.models()}
 
     # ----- detail -----
 
-    def _detail(self, row) -> dict:
-        card = self._card_rows[self._pos[int(row["raw_id"])]]
+    def _detail(self, pos: int) -> dict:
+        store = self.store
+        card = self._card(pos)
+        description, instructions, names = store.detail(pos)
+        prep, cook, total = store.times(pos)
         return {
             "id": card["id"],
-            "name": row["name"],
-            "description": row["description"],
+            "name": card["title"],
+            "description": description,
             "veg": card["veg"],
-            "image": row["image_url"],
-            "prep_time": _minutes(row["prep_time"]),
-            "cook_time": _minutes(row["cook_time"]),
-            "total_time": card["total_time"],
-            "course": row["course"],
-            "cuisine": row["cuisine"],
-            "cooking_ingredients": str(row["ingredients_name"]) if pd.notna(row["ingredients_name"]) else "",
-            "cooking_instruction": row["instructions"],
+            "image": card["image"],
+            "prep_time": prep,
+            "cook_time": cook,
+            "total_time": total,
+            "course": card["course"],
+            "cuisine": card["cuisine"],
+            "cooking_ingredients": names,
+            "cooking_instruction": instructions,
             "palette": card["palette"],
             # One entry per ingredient in cooking_ingredients, in the same order.
-            "ingredient_colors": self._palette.colors(split_ingredients(row["ingredients_name"])),
+            "ingredient_colors": self._palette.colors(split_ingredients(names)),
         }
 
     # ----- semantic parts -----
@@ -314,9 +391,7 @@ class Recommender:
         with self._lock:
             if self._semantic is None and not self._semantic_failed:
                 try:
-                    from .semantic import SemanticSearch
-
-                    self._semantic = SemanticSearch(self.recipes)
+                    self._semantic = self.store.semantic()
                 except Exception:
                     self._semantic_failed = True
             return self._semantic
@@ -369,12 +444,10 @@ class Recommender:
             return None
 
     def _text_scores(self, text: str) -> np.ndarray:
-        """TF-IDF cosine over name and description. The search fallback."""
+        """TF-IDF cosine over the recipe text. The search fallback."""
         with self._lock:
             if self._text_search is None:
-                docs = [f"{n} {n} {d}" for n, d in zip(self.recipes["name"], self.recipes["description"])]
-                vec = TfidfVectorizer(stop_words="english", sublinear_tf=True)
-                self._text_search = (vec, vec.fit_transform(docs))
+                self._text_search = self.store.name_search()
             vec, matrix = self._text_search
         q = vec.transform([text])
         return np.asarray((matrix @ q.T).todense()).ravel()

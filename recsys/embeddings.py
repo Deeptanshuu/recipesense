@@ -131,32 +131,40 @@ class IngredientIndex:
     """Recipe x ingredient incidence, IDF and query resolution, shared by the
     rankers below and by the learned ranker's features."""
 
-    def __init__(self, recipes: pd.DataFrame, vocab: Vocabulary, fuzzy_threshold: float = FUZZY_THRESHOLD):
+    def __init__(self, recipes: pd.DataFrame | None, vocab: Vocabulary, fuzzy_threshold: float = FUZZY_THRESHOLD,
+                 rows: tuple[np.ndarray, np.ndarray] | None = None):
+        """``rows`` is a ready table ``(indptr, indices)`` in CSR layout, one row per
+        recipe, with ingredient ids that follow ``sorted(vocab.counts)``. With it
+        ``recipes`` is not read, which is how the packed catalogue starts fast."""
         self.vocab = vocab
         self.keys = sorted(vocab.counts)
         self.key_index = {k: i for i, k in enumerate(self.keys)}
-        n = len(recipes)
+        if rows is None:
+            lists = [[self.key_index[k] for k in items if k in self.key_index] for items in recipes["ingredients"]]
+            lens = np.array([len(x) for x in lists], dtype=np.int64)
+            indptr = np.concatenate([[0], np.cumsum(lens)])
+            indices = np.array([i for idx in lists for i in idx], dtype=np.int32)
+        else:
+            indptr = np.asarray(rows[0], dtype=np.int64)
+            indices = np.asarray(rows[1], dtype=np.int32)
+            lens = np.diff(indptr)
+        n = len(lens)
         counts = np.array([vocab.counts[k] for k in self.keys], dtype=np.float64)
         self.idf = np.log(np.maximum(n, counts) / counts).astype(np.float32)
 
-        rows, cols = [], []
-        lists = []
-        for r, items in enumerate(recipes["ingredients"]):
-            idx = [self.key_index[k] for k in items if k in self.key_index]
-            lists.append(idx)
-            rows.extend([r] * len(idx))
-            cols.extend(idx)
-        data = np.ones(len(rows), dtype=np.float32)
-        self.incidence = sparse.csr_matrix((data, (rows, cols)), shape=(n, len(self.keys)))
+        data = np.ones(len(indices), dtype=np.float32)
+        # Copies, so sorting the matrix leaves the caller's recipe order alone.
+        self.incidence = sparse.csr_matrix((data, indices.copy(), indptr.copy()), shape=(n, len(self.keys)))
+        self.incidence.sum_duplicates()
         self.incidence_csc = self.incidence.tocsc()
-        self.recipe_len = np.array([len(x) for x in lists], dtype=np.float32)
+        self.recipe_len = lens.astype(np.float32)
         self.recipe_idf = np.asarray(self.incidence @ self.idf).ravel().astype(np.float32)
         # Padded ingredient ids per recipe, for max-over-ingredients lookups.
         # The pad points at an extra column that callers fill with a low value.
-        width = max(1, int(self.recipe_len.max()))
+        width = max(1, int(lens.max())) if n else 1
         self.padded = np.full((n, width), len(self.keys), dtype=np.int32)
-        for r, idx in enumerate(lists):
-            self.padded[r, :len(idx)] = idx
+        row_of = np.repeat(np.arange(n), lens)
+        self.padded[row_of, np.arange(len(indices)) - indptr[:-1][row_of]] = indices
         self.fuzzy = FuzzyMatcher(vocab, fuzzy_threshold)
 
     def resolve(self, query: list[str]) -> tuple[list[int], int]:

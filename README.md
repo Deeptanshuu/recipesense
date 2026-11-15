@@ -5,7 +5,7 @@
 <br>
 <br>
 
-**Type what is in your kitchen, or describe what you feel like eating. RecipeSense ranks 6,521 recipes in about 3 ms.**
+**Type what is in your kitchen, or describe what you feel like eating. RecipeSense ranks 238,157 recipes in about 20 ms.**
 
 **[Live demo](https://recipesense.vercel.app)** &nbsp;&nbsp;|&nbsp;&nbsp; **[Results](#how-good-is-it)** &nbsp;&nbsp;|&nbsp;&nbsp; **[Under the hood](#under-the-hood)** &nbsp;&nbsp;|&nbsp;&nbsp; **[API](server/README.md)**
 
@@ -161,7 +161,9 @@ docker build -t recipesense . && docker run -p 7860:7860 recipesense
 | Train ingredient vectors and the ranker, about 30 s | `python -m recsys.train` |
 | Evaluate the ingredient rankers on `test` | `python -m recsys.evaluate` |
 | Evaluate free-text search | `python -m recsys.eval_semantic` |
-| Tests (132) | `python -m pytest` |
+| Pack both datasets into `data/catalogue/` and train its models, about 20 min | `python -m recsys.catalogue` |
+| Evaluate the packed catalogue on a sample of `test` | `python -m recsys.evaluate --catalogue` |
+| Tests (168) | `python -m pytest` |
 | Web lint and build | `cd web && npm run lint && npm run build` |
 | Rebuild the README images | `node docs/images/src/build.mjs` (needs playwright-core, see the file header) |
 
@@ -190,7 +192,7 @@ server/     Flask routes over one Recommender object
 api/        Vercel entry point
 web/        React, Vite and Tailwind front end
 models/     ingredient vectors (180 KB), ranker (350 KB), text embeddings (5 MB), MiniLM (23 MB)
-data/       recipes.csv, 7,540 rows
+data/       recipes.csv, 7,540 rows; catalogue/, both datasets packed for the API (130 MB)
 tests/      pytest suite
 ```
 
@@ -200,6 +202,20 @@ tests/      pytest suite
 link. 6,521 remain after removing Hindi copies of English recipes, plain repeats and Hindi-only
 rows. The cleaning also handles "Vegetarian" rows that list meat or eggs, 78 cuisine labels for
 what a person would call a dozen cuisines, and the same ingredient spelled many ways.
+
+The API serves that set together with 231,636 recipes from
+[Food.com Recipes and Interactions](https://www.kaggle.com/datasets/shuyangli94/food-com-recipes-and-user-interactions)
+(Kaggle): 238,157 in all. Food.com has no photos or quantities; cuisine and course come from its
+tags, and a recipe counts as vegetarian when neither its ingredients nor its tags name meat, fish
+or egg. A frame that size is too slow to clean on every start, so `python -m recsys.catalogue`
+packs everything once into `data/catalogue/`: arrays for search, recipe text in compressed blocks
+read on demand, text vectors cut to 192 dimensions, and ingredient vectors and a ranker trained on
+the full set. The API then starts in about 2 s. To rebuild it, put `RAW_recipes.csv` from the
+Kaggle page in `data/raw/kaggle/`.
+
+The measurements above are on the first dataset. On the packed catalogue, with queries built from
+1,500 held-out recipes, the learned ranker puts the source recipe in the top 6 for 95.9% of typed,
+97.4% of exact and 98.5% of pantry queries (overlap: 95.8%, 97.4%, 95.1%).
 
 ## Acknowledgements
 

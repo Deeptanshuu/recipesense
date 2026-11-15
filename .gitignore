@@ -7,3 +7,5 @@ node_modules/
 web/dist/
 .env
 .DS_Store
+# Downloaded source data; see recsys/foodcom.py
+data/raw/

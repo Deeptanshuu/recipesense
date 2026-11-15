@@ -127,6 +127,6 @@ def test_detail_payload(client, recommender):
     lines = split_ingredients(detail["cooking_ingredients"])
     assert len(detail["ingredient_colors"]) == len(lines)
     assert all(c is None or HEX.match(c) for c in detail["ingredient_colors"])
-    assert detail["palette"] == recommender._card_rows[recommender._pos[rid]]["palette"]
+    assert detail["palette"] == recommender._card(recommender._pos[rid])["palette"]
     by_line = dict(zip(lines, detail["ingredient_colors"]))
     assert by_line.get("Salt", None) is None

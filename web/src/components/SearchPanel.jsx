@@ -10,8 +10,13 @@ import { useStored } from '../searchStore';
 const INGREDIENTS = ingredientsData.ingredients.map((name, i) => ({ id: `ing_${i}`, name: removeEmojis(name) }));
 const BY_ID = new Map(INGREDIENTS.map((i) => [i.id, i]));
 // The list is ordered by how often an ingredient is used. The quick picks are the first
-// few that say something about a dish; salt, oil, water and sugar are in nearly all of them.
-const EVERYWHERE = new Set(['salt', 'oil', 'water', 'sugar']);
+// few that say something about a dish; salt, oil, flour and the like are in nearly all of them.
+const EVERYWHERE = new Set([
+  'salt', 'oil', 'water', 'sugar', 'butter', 'eggs', 'egg', 'milk', 'flour', 'all-purpose flour', 'pepper',
+  'black pepper', 'salt and pepper', 'brown sugar', 'granulated sugar', 'baking powder', 'baking soda',
+  'vanilla', 'vanilla extract', 'vegetable oil', 'olive oil', 'extra virgin olive oil', 'unsalted butter',
+  'garlic cloves', 'cornstarch', 'fresh ground black pepper',
+]);
 const QUICK = INGREDIENTS.filter((i) => !EVERYWHERE.has(i.name.toLowerCase())).slice(0, 14);
 const SUGGESTIONS = 8;
 
@@ -329,7 +334,7 @@ const SearchPanel = ({
                       aria-selected={i === current}
                       // mousedown, not click, so the input keeps the focus.
                       onMouseDown={(e) => { e.preventDefault(); o.pick(); }}
-                      onMouseEnter={() => setActive(i)}
+                      onMouseMove={() => { if (i !== current) setActive(i); }}
                       className={`flex min-h-11 cursor-pointer items-center gap-2 px-4 text-base ${
                         i === current ? 'bg-[#f3f1ec] text-ink' : 'text-slate-700'
                       }`}

@@ -1,4 +1,4 @@
-"""Load and clean the 7k recipe dataset.
+"""Load and clean the first, 7k recipe dataset.
 
 The raw CSV has padded cells, bracketed ingredient aliases
 ("Turmeric powder (Haldi)"), mixed singular and plural spellings, and Hindi

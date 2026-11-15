@@ -52,6 +52,47 @@ class TfidfRanker:
         self.vectorizer = TfidfVectorizer(binary=True)
         self.matrix = self.vectorizer.fit_transform(texts)
 
+    @classmethod
+    def from_parts(cls, terms: list[str], idf: np.ndarray, matrix) -> "TfidfRanker":
+        """A ranker from a saved fit: the terms in column order, their IDF and the
+        recipe matrix. Nothing is fitted, so this is how the packed catalogue loads."""
+        self = cls.__new__(cls)
+        self.vectorizer = QueryTerms(terms, idf)
+        self.matrix = matrix
+        return self
+
+    def parts(self) -> tuple[list[str], np.ndarray]:
+        """Terms in column order and their IDF, for :meth:`from_parts`."""
+        vocab = self.vectorizer.vocabulary_
+        return sorted(vocab, key=vocab.get), np.asarray(self.vectorizer.idf_, dtype=np.float32)
+
     def score(self, query: list[str]) -> np.ndarray:
         vec = self.vectorizer.transform([" ".join(query)])
         return np.asarray((self.matrix @ vec.T).todense()).ravel().astype(np.float32)
+
+
+class QueryTerms:
+    """The query side of a fitted binary TF-IDF: the same tokens, weights and
+    L2 norm as ``TfidfVectorizer(binary=True).transform``, without the fit."""
+
+    _TOKEN = re.compile(r"(?u)\b\w\w+\b")
+
+    def __init__(self, terms: list[str], idf: np.ndarray):
+        self.column = {t: i for i, t in enumerate(terms)}
+        self.idf = np.asarray(idf, dtype=np.float32)
+
+    def transform(self, docs: list[str]):
+        from scipy import sparse
+
+        rows, cols, vals = [], [], []
+        for r, doc in enumerate(docs):
+            found = sorted({self.column[t] for t in self._TOKEN.findall(str(doc).lower()) if t in self.column})
+            if not found:
+                continue
+            weights = self.idf[found]
+            weights = weights / np.linalg.norm(weights)
+            rows.extend([r] * len(found))
+            cols.extend(found)
+            vals.extend(weights.tolist())
+        return sparse.csr_matrix((np.array(vals, dtype=np.float32), (rows, cols)),
+                                 shape=(len(docs), len(self.idf)))

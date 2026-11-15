@@ -57,9 +57,9 @@ def test_resolve_ui_names():
     assert tx.resolve_cuisines(["Indian", "Italian"]) == {"Indian", "Italian"}
     assert tx.resolve_cuisines(["Japanese", "Thai"]) == {"Chinese & East Asian", "Thai & South-East Asian"}
     assert tx.resolve_cuisines(["Kerala Recipes"]) == {"Indian", "South Indian"}
-    assert tx.resolve_cuisines(["Russian", "Vegan", ""]) == set()
+    assert tx.resolve_cuisines(["Martian", "Vegan", ""]) == set()
     assert tx.resolve_course("Main Course") == "Main Course"
     assert tx.resolve_course("Breakfast") == "Breakfast"
     assert tx.resolve_course("Lunch") == "Main Course"
-    assert tx.resolve_course("Soup") is None
+    assert tx.resolve_course("Supper") is None
     assert tx.resolve_course("") is None

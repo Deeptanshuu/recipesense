@@ -1,6 +1,7 @@
 """Cuisine and course groups for the filters.
 
-The dataset has about 80 cuisine labels and 14 course labels. Matching a
+The first dataset has about 80 cuisine labels and 14 course labels, and the
+Food.com recipes add about 100 more cuisines from their tags. Matching a
 click as a substring of the label would make "Indian" miss "Kerala Recipes"
 and "Main Course" miss "Lunch", so every label is mapped by hand to the small set of groups the UI offers.
 
@@ -67,7 +68,32 @@ for _group, _labels in {
     for _label in _labels:
         CUISINE_MAP[_label] = frozenset({_group})
 
+# Labels the Food.com recipes carry (see recsys.foodcom). Some names above are reused.
+for _group, _labels in {
+    AMERICAN: ["North American", "Canadian", "Southern United States", "Southwestern United States",
+               "Midwestern", "Northeastern United States", "Pacific Northwest", "Californian", "Cajun",
+               "Creole", "Hawaiian", "Native American", "Pennsylvania Dutch", "Amish Mennonite", "Soul Food",
+               "Ontario", "Quebec", "British Columbian", "Cuban", "Puerto Rican", "South American",
+               "Central American", "Brazilian", "Argentine", "Peruvian", "Chilean", "Colombian",
+               "Venezuelan", "Ecuadorean", "Costa Rican", "Guatemalan", "Honduran"],
+    MEXICAN: ["Oaxacan", "Baja"],
+    ITALIAN: ["Italian"],
+    EUROPEAN: ["English", "Scottish", "Irish", "Welsh", "German", "Spanish", "Portuguese", "Scandinavian",
+               "Danish", "Norwegian", "Finnish", "Icelandic", "Polish", "Russian", "Hungarian", "Czech",
+               "Austrian", "Swiss", "Belgian", "Dutch", "Georgian"],
+    EAST_ASIAN: ["Beijing", "Mongolian"],
+    SE_ASIAN: ["Filipino", "Cambodian", "Laotian"],
+    MIDDLE_EASTERN: ["Lebanese", "Turkish", "Persian", "Saudi Arabian", "Iraqi", "Palestinian"],
+    AFRICAN: ["Moroccan", "South African", "Ethiopian", "Nigerian", "Libyan", "Sudanese", "Angolan",
+              "Congolese", "Somalian", "Namibian"],
+    OTHER: ["Australian", "New Zealand", "South West Pacific", "Polynesian", "Micronesian"],
+}.items():
+    for _label in _labels:
+        CUISINE_MAP[_label] = frozenset({_group})
+
 # Labels that belong to two worlds.
+CUISINE_MAP["Tex Mex"] = frozenset({AMERICAN, MEXICAN})
+CUISINE_MAP["Egyptian"] = frozenset({AFRICAN, MIDDLE_EASTERN})
 CUISINE_MAP["Indo Chinese"] = frozenset({INDIAN, EAST_ASIAN})
 CUISINE_MAP["Asian"] = frozenset({EAST_ASIAN, SE_ASIAN})
 CUISINE_MAP[""] = frozenset({OTHER})
@@ -77,8 +103,9 @@ BREAKFAST = "Breakfast"
 SNACK = "Snack & Appetizer"
 SIDE = "Side Dish"
 DESSERT = "Dessert"
+DRINK = "Drinks"
 
-COURSE_GROUPS = [MAIN, BREAKFAST, SNACK, SIDE, DESSERT, OTHER]
+COURSE_GROUPS = [MAIN, BREAKFAST, SNACK, SIDE, DESSERT, DRINK, OTHER]
 
 COURSE_MAP: dict[str, str] = {
     "Lunch": MAIN, "Dinner": MAIN, "Main Course": MAIN, "One Pot Dish": MAIN,
@@ -88,10 +115,13 @@ COURSE_MAP: dict[str, str] = {
     "Side Dish": SIDE,
     "Dessert": DESSERT,
     "": OTHER,
+    # Food.com labels (see recsys.foodcom).
+    "Breakfast": BREAKFAST, "Soup": MAIN, "Salad": SIDE, "Drink": DRINK, "Bread": OTHER,
+    "Sauce & Condiment": OTHER,
 }
 
 # Common names that are not group names. Anything not listed here or
-# in the group names is ignored, so Russian, Irish or Vegan add no boost.
+# in the group names or the labels is ignored, so Vegan or Keto add no boost.
 _CUISINE_ALIASES = {
     "japanese": [EAST_ASIAN], "chinese": [EAST_ASIAN], "korean": [EAST_ASIAN], "asian": [EAST_ASIAN, SE_ASIAN],
     "thai": [SE_ASIAN], "vietnamese": [SE_ASIAN], "south-east asian": [SE_ASIAN],
@@ -103,6 +133,7 @@ _COURSE_ALIASES = {
     "lunch": MAIN, "dinner": MAIN, "one pot dish": MAIN, "brunch": BREAKFAST,
     "snack": SNACK, "appetizer": SNACK, "starter": SNACK, "snacks": SNACK, "appetizers": SNACK,
     "side": SIDE, "sides": SIDE, "desserts": DESSERT, "sweet": DESSERT,
+    "drink": DRINK, "beverage": DRINK, "beverages": DRINK, "soup": MAIN, "salad": SIDE,
 }
 
 
@@ -157,15 +188,24 @@ def resolve_course(name: str) -> str | None:
 
 def cuisine_options(recipes: pd.DataFrame) -> list[dict]:
     """Groups with the number of recipes in each, in UI order. Empty ones are left out."""
+    return cuisine_options_from(recipes["cuisine"].value_counts().items())
+
+
+def course_options(recipes: pd.DataFrame) -> list[dict]:
+    return course_options_from(recipes["course"].value_counts().items())
+
+
+def cuisine_options_from(label_counts) -> list[dict]:
+    """The same, from ``(label, number of recipes)`` pairs."""
     counts = dict.fromkeys(CUISINE_GROUPS, 0)
-    for label, n in recipes["cuisine"].value_counts().items():
+    for label, n in label_counts:
         for group in cuisine_groups(label):
             counts[group] += int(n)
     return [{"name": g, "count": c} for g, c in counts.items() if c > 0]
 
 
-def course_options(recipes: pd.DataFrame) -> list[dict]:
+def course_options_from(label_counts) -> list[dict]:
     counts = dict.fromkeys(COURSE_GROUPS, 0)
-    for label, n in recipes["course"].value_counts().items():
+    for label, n in label_counts:
         counts[course_group(label)] += int(n)
     return [{"name": g, "count": c} for g, c in counts.items() if c > 0]

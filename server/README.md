@@ -1,6 +1,7 @@
 # Recipe API
 
-Flask API over the cleaned 7k recipe catalogue (`recsys/`). The catalogue and
+Flask API over the recipe catalogue (`recsys/`): the packed 238k one in `data/catalogue/` when it
+is there, else the first 7k dataset. The catalogue and
 rankers load once at start-up and stay in memory.
 
 ## Run
