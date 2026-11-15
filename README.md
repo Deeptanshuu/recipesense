@@ -109,11 +109,11 @@ with, and the learned ranker holds its place:
 | Ranker | typed | exact | pantry |
 |---|---|---|---|
 | TF-IDF | 53.8% | 80.4% | 86.0% |
-| Ingredient overlap on cleaned names | 95.8% | **97.4%** | 95.1% |
-| Ingredient embeddings alone | 75.1% | 76.7% | 31.2% |
-| **Learned ranker** | **95.9%** | **97.4%** | **98.5%** |
+| Ingredient overlap on cleaned names | **96.9%** | **97.4%** | 95.1% |
+| Ingredient embeddings alone | 75.9% | 76.7% | 31.2% |
+| **Learned ranker** | **96.9%** | **97.4%** | **98.5%** |
 
-Top-1 for the learned ranker is 86.0% / 88.1% / 93.5%. Reproduce with
+Top-1 for the learned ranker is 87.1% / 88.1% / 93.5%. Reproduce with
 `python -m recsys.evaluate --catalogue`.
 
 **Free-text search** on the first set, same split, about 3,100 queries per style:
