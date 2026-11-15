@@ -3,6 +3,8 @@ import RecipeCard from './RecipeCard';
 import { ArrowRight } from 'lucide-react';
 import Pagination from './Pagination';
 import TimingCard from './TimingCard';
+import Pipeline from './Pipeline';
+import { searchSteps } from '../pipelineSteps';
 
 // What the current results were asked for, as plain lines.
 const FilterSummary = ({ run }) => {
@@ -43,20 +45,22 @@ const Message = ({ title, children }) => (
 );
 
 const ResultsGrid = ({
-  status, error, items, run, timing, page, pageSize, onPage, liked, onToggleLike, onRetry, onExample,
+  status, error, items, run, recipes, timing, page, pageSize, onPage, liked, onToggleLike, onRetry, onExample,
 }) => {
   if (status === 'loading') {
-    // The final layout with flat bars where the words will land, so nothing shifts when results arrive.
+    // The search as asked, then the steps the server is working through, over the grid the results will fill.
     return (
       <div aria-busy="true">
-        <span className="sr-only" role="status">Finding recipes</span>
-        <div className="pb-6">
-          <div className="h-8 w-48 rounded bg-[#efede8]" />
-          <div className="mt-5 h-4 w-72 max-w-full rounded bg-[#efede8]" />
-        </div>
-        <div className="grid grid-cols-1 gap-x-8 gap-y-10 border-t border-slate-200 pt-6 sm:grid-cols-2 xl:grid-cols-3">
+        <header className="pb-6">
+          <h1 className="font-serif text-[28px] font-medium tracking-[-0.01em] text-ink lg:text-[32px]">
+            Finding your matches
+          </h1>
+          {run && <FilterSummary run={run} />}
+          <Pipeline className="mt-4" label="Finding recipes" steps={searchSteps(run, recipes)} />
+        </header>
+        <div aria-hidden="true" className="grid grid-cols-1 gap-x-8 gap-y-10 border-t border-slate-200 pt-6 sm:grid-cols-2 xl:grid-cols-3">
           {Array.from({ length: 6 }, (_, i) => (
-            <div key={i}>
+            <div key={i} className="animate-pulse motion-reduce:animate-none" style={{ animationDelay: `${i * 140}ms` }}>
               <div className="aspect-[3/2] rounded-[3px] bg-[#efede8]" />
               <div className="mt-5 h-4 w-32 rounded bg-[#efede8]" />
               <div className="mt-4 h-5 w-4/5 rounded bg-[#efede8]" />

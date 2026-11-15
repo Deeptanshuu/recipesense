@@ -1,9 +1,10 @@
 /* eslint-disable react/prop-types */
-// Quiet loading line: a thin spinning ring and a short label.
-const Loading = ({ label = 'Loading' }) => (
-  <div className="flex items-center justify-center gap-3 py-16 text-slate-500" role="status" aria-live="polite">
-    <span className="h-4 w-4 animate-spin rounded-full border-2 border-slate-200 border-t-ink" aria-hidden="true" />
-    <span className="text-[15px]">{label}</span>
+import Pipeline from './Pipeline';
+
+// A centred loading state: the steps of the request, or just the label when there are none.
+const Loading = ({ label = 'Loading', steps }) => (
+  <div className="flex justify-center px-5 py-16">
+    <Pipeline label={label} steps={steps && steps.length ? steps : [label]} />
   </div>
 );
 

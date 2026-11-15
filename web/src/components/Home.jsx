@@ -6,6 +6,8 @@ import useLikes from '../useLikes';
 import { recommend, search, getMeta } from '../api';
 import Wordmark from './Wordmark';
 import { useStored, getStored, setStored, clearStored } from '../searchStore';
+import { searchSteps } from '../pipelineSteps';
+import { holdFor } from '../pacing';
 
 const PAGE_SIZE = 12;
 const TAGLINE = 'Type what is in your kitchen. Get recipes that use it.';
@@ -55,6 +57,7 @@ const Home = () => {
           cuisines: ok(data.cuisines) ? data.cuisines : FALLBACK_META.cuisines,
           courses: ok(data.courses) ? data.courses : FALLBACK_META.courses,
           models: ok(data.models) ? data.models : FALLBACK_META.models,
+          recipes: typeof data.recipes === 'number' ? data.recipes : undefined,
           status: ok(data.cuisines) && ok(data.courses) ? 'ok' : 'fallback',
         };
         // Keep the lists already on screen when nothing changed, so the panel does not redraw.
@@ -76,6 +79,8 @@ const Home = () => {
     const id = ++reqId.current;
     setLastRun(params);
     setResults((r) => ({ ...r, status: 'loading', error: '' }));
+    // Results wait for the loading steps to play through; an error is shown at once.
+    const shown = holdFor(searchSteps(params).length);
     try {
       let data;
       let label;
@@ -94,6 +99,7 @@ const Home = () => {
         });
         label = modelLabel(data.model || params.model);
       }
+      await shown;
       if (id !== reqId.current) return;
       setResults({ status: 'done', items: data.recommendations || [], error: '' });
       if (typeof data.execution_time === 'number') {
@@ -180,6 +186,7 @@ const Home = () => {
           error={results.error}
           items={results.items}
           run={lastRun}
+          recipes={meta.recipes}
           timing={timing}
           page={page}
           pageSize={PAGE_SIZE}

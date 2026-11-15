@@ -188,7 +188,7 @@ const FORMS = [
   ['liquid', /cream|curd|yogurt|yoghurt|milk|syrup|honey|juice|extract|sauce|water|ghee|\boil\b|vinegar|vinaigrette|stock|puree|paste|pulp|pesto|chutney|mayo|ketchup|spread|\bjam\b|marmalade|compote|coulis|custard|decoction|tahini|batter|salsa|mustard|nutella|gulkand|\bdip\b|peanut butter/],
   ['strand', /saffron|spaghetti|linguine|noodle|vermicelli|semiya|\bsev\b|pasta$|lemon ?grass|chives|shavings|slivered|rosemary|drumstick|asparagus|green beans|gawar|strips|sprouts?/],
   ['chilli', /chill|jalapeno|chipotle|prawn|shrimp|cashew/],
-  ['leaf', /leaves|leaf|oregano|basil|coriander|cilantro|spinach|mint|methi|parsley|thyme|\bdill\b|lettuce|\bkale\b|arugula|rocket|chard|amaranth|bok choy|greens|cabbage|celery|\bleek|spring onion|bathua|brahmi|salad/],
+  ['leaf', /leaves|leaf|\bsage\b|oregano|basil|coriander|cilantro|spinach|mint|methi|parsley|thyme|\bdill\b|lettuce|\bkale\b|arugula|rocket|chard|amaranth|bok choy|greens|cabbage|celery|\bleek|spring onion|bathua|brahmi|salad/],
   ['berry', /pomegranate|cranberr|blueberr|berries|grapes?|olives?|cherr|\bpeas?\b|corn|chana|chickpea|boondi|sabudana|goji|chocolate chips|pearl onion|small onion|shallot|raisin|dates|prunes/],
   ['grain', /\bdal\b|rice|beans?\b|rajma|\bgram\b|lentil|moong|pistachio|almond|walnut|peanut|pecan|nuts?\b|coconut|seeds?\b|ginger|garlic|parmesan|oats|poha|quinoa|barley|millet|bajra|wheat|ragi|granola|muesli|penne|fusilli|macaroni|pasta|soy|kheema|mince|tamarind|kokum|dry fruits|other ingredients/],
   ['cube', /paneer|potato|chicken|chocolate|cheese|tofu|butter|mutton|lamb|fish|meat|pumpkin|kaddu|\byam\b|khoya|bacon|jackfruit|pineapple|papaya|melon|turnip|cauliflower|broccoli|ice cream|vegetables|poosanikai/],

@@ -47,3 +47,68 @@
     @apply inline-flex min-h-11 items-center justify-center rounded-full bg-[#ebe9e4] px-5 text-[15px] font-medium text-ink transition-colors hover:bg-[#e2dfd8];
   }
 }
+
+/*
+  Step icons (StepIcon.jsx). The drawings are still until an ancestor has .step-on:
+  the running step of a loading state. Each rule is one way of moving.
+*/
+.step-on .si-draw {
+  stroke-dasharray: 1;
+  animation: si-draw 1.8s ease-in-out infinite both;
+}
+.step-on .si-pulse {
+  animation: si-pulse 1.2s ease-in-out infinite both;
+}
+.step-on .si-flow {
+  stroke-dasharray: 2.5 2.5;
+  animation: si-flow 0.7s linear infinite;
+}
+.step-on .si-spin {
+  transform-box: view-box;
+  transform-origin: 50% 50%;
+  animation: si-spin 1.6s linear infinite;
+}
+.step-on .si-bar {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: si-bar 1.1s ease-in-out infinite both;
+}
+.step-on .si-tilt {
+  transform-box: view-box;
+  transform-origin: 50% 29%;
+  animation: si-tilt 1.6s ease-in-out infinite;
+}
+@keyframes si-draw {
+  0% { stroke-dashoffset: 1; }
+  40%, 85% { stroke-dashoffset: 0; }
+  100% { stroke-dashoffset: 1; }
+}
+@keyframes si-pulse {
+  0%, 100% { opacity: 0.25; }
+  40% { opacity: 1; }
+}
+@keyframes si-flow {
+  to { stroke-dashoffset: -5; }
+}
+@keyframes si-spin {
+  to { transform: rotate(360deg); }
+}
+@keyframes si-bar {
+  0%, 100% { transform: scaleY(1); }
+  50% { transform: scaleY(0.45); }
+}
+@keyframes si-tilt {
+  0%, 100% { transform: rotate(-9deg); }
+  50% { transform: rotate(9deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .step-on .si-draw,
+  .step-on .si-pulse,
+  .step-on .si-flow,
+  .step-on .si-spin,
+  .step-on .si-bar,
+  .step-on .si-tilt {
+    animation: none;
+    stroke-dasharray: none;
+  }
+}

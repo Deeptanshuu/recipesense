@@ -3,13 +3,18 @@ import { useState, useEffect } from 'react';
 import { useParams, useLocation, useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import Loading from './Loading';
+import Pipeline from './Pipeline';
 import LikeButton from './LikeButton';
 import RecipeCard from './RecipeCard';
 import Cover from './Cover';
+import IngredientIcon from './IngredientIcon';
 import Wordmark from './Wordmark';
 import useLikes from '../useLikes';
 import { getRecipe, getSimilar } from '../api';
 import { formatMinutes, displayTitle, displayLabel } from '../utils';
+import { getStored } from '../searchStore';
+import { recipeSteps, similarSteps } from '../pipelineSteps';
+import { holdFor } from '../pacing';
 
 const toList = (value, sep) => {
   if (Array.isArray(value)) return value.map(String);
@@ -87,8 +92,13 @@ const Recipe = () => {
         if (err.name !== 'AbortError') setState({ status: 'error', recipe: null, error: err.message, notFound: err.status === 404 });
       });
 
+    // The similar list waits for its loading steps to play through.
+    const shown = holdFor(similarSteps().length);
     getSimilar(id, { signal: controller.signal })
-      .then((data) => setSimilar({ status: 'done', items: (data.recommendations || []).slice(0, 6), error: '' }))
+      .then((data) => shown.then(() => data))
+      .then((data) => {
+        if (!controller.signal.aborted) setSimilar({ status: 'done', items: (data.recommendations || []).slice(0, 6), error: '' });
+      })
       .catch((err) => {
         if (err.name !== 'AbortError') setSimilar({ status: 'error', items: [], error: err.message });
       });
@@ -102,7 +112,7 @@ const Recipe = () => {
   }, [state]);
 
   if (state.status === 'loading') {
-    return <Page><div className="py-24"><Loading label="Loading recipe" /></div></Page>;
+    return <Page><div className="py-24"><Loading label="Loading recipe" steps={recipeSteps()} /></div></Page>;
   }
 
   if (state.status === 'error') {
@@ -174,7 +184,7 @@ const Recipe = () => {
             <ul aria-labelledby="cover-legend" className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-3">
               {palette.map((p) => (
                 <li key={p.name} className="flex min-w-0 items-start gap-2.5 text-[15px] leading-5 text-slate-700">
-                  <span className="mt-1 h-3 w-3 shrink-0 rounded-full ring-1 ring-inset ring-ink/10" style={{ backgroundColor: p.color }} aria-hidden="true" />
+                  <IngredientIcon name={p.name} color={p.color} />
                   <span className="line-clamp-2 min-w-0 break-words">{p.name}</span>
                 </li>
               ))}
@@ -187,13 +197,7 @@ const Recipe = () => {
           <ul className="mt-4 grid grid-cols-1 gap-x-10 sm:grid-cols-2">
             {ingredients.map((ingredient, index) => (
               <li key={index} className="flex items-center gap-3 border-b border-slate-100 py-2.5 text-base text-slate-800">
-                {colors.length > 0 && (
-                  <span
-                    className={`h-2.5 w-2.5 shrink-0 rounded-[2px] ${colors[index] ? 'ring-1 ring-inset ring-ink/10' : ''}`}
-                    style={colors[index] ? { backgroundColor: colors[index] } : undefined}
-                    aria-hidden="true"
-                  />
-                )}
+                <IngredientIcon name={ingredient} color={colors[index]} />
                 {ingredient}
               </li>
             ))}
@@ -216,7 +220,9 @@ const Recipe = () => {
 
       <section className="mx-auto max-w-5xl px-5 pb-16 lg:px-8">
         <h2 className="pb-2 font-serif text-2xl font-medium text-ink">More like this</h2>
-        {similar.status === 'loading' && <Loading label="Finding similar recipes" />}
+        {similar.status === 'loading' && (
+          <Pipeline className="py-6" label="Finding similar recipes" steps={similarSteps(getStored('meta', {}).recipes)} />
+        )}
         {similar.status === 'error' && (
           <p className="py-6 text-base text-red-700" role="alert">Could not load similar recipes. {similar.error}</p>
         )}
