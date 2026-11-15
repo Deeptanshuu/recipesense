@@ -10,7 +10,6 @@ import { searchSteps } from '../pipelineSteps';
 import { holdFor } from '../pacing';
 
 const PAGE_SIZE = 12;
-const TAGLINE = 'Type what is in your kitchen. Get recipes that use it.';
 const RESULT_LIMIT = 60;
 
 // Used when /api/meta cannot be reached.
@@ -36,7 +35,6 @@ const Home = () => {
   const [lastRun, setLastRun] = useStored('lastRun', null);
   const [timing, setTiming] = useStored('timing', { current: null, previous: null });
   const [page, setPage] = useStored('page', 1);
-  // Phones only: after a search the controls fold into an "Edit search" row so results come first.
   const [collapsed, setCollapsed] = useStored('collapsed', false);
   // An example description picked on the empty screen; the panel fills itself in and runs it.
   const [preset, setPreset] = useState(null);
@@ -137,33 +135,38 @@ const Home = () => {
     if (resultRef.current) resultRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
+  const idle = results.status === 'idle';
+  const catalogue = typeof meta.recipes === 'number' ? `${meta.recipes.toLocaleString('en-US')} recipes` : 'thousands of recipes';
+  // Phones only: once a search has run, the box folds into one button so the results come first.
+  const folded = collapsed && !idle;
+
   return (
-    <div className="mx-auto min-h-screen max-w-[1440px] lg:flex">
-      <aside className="lg:sticky lg:top-0 lg:flex lg:h-screen lg:w-[400px] lg:shrink-0 lg:flex-col lg:border-r lg:border-slate-200">
-        <header className="px-5 pb-6 pt-7 lg:px-8 lg:pt-9">
-          <Wordmark />
-          {/* Below the desktop layout the empty-state heading is hidden, so the tagline is the page title there. */}
-          {results.status === 'idle' ? (
-            <>
-              <h1 className="mt-1 text-balance text-[15px] font-normal text-slate-500 lg:hidden">{TAGLINE}</h1>
-              <p className="mt-1 hidden text-balance text-[15px] text-slate-500 lg:block">{TAGLINE}</p>
-            </>
-          ) : (
-            <p className="mt-1 text-balance text-[15px] text-slate-500">{TAGLINE}</p>
-          )}
-        </header>
+    <div className="mx-auto min-h-screen max-w-[1200px] px-5 pb-16 lg:px-8">
+      <header className="pt-6 lg:pt-8">
+        <Wordmark />
+      </header>
 
-        {collapsed && (
-          <div className="px-5 lg:hidden">
-            <button type="button" onClick={() => setCollapsed(false)} className="btn-quiet w-full gap-2">
-              <SlidersHorizontal size={16} aria-hidden="true" />
-              Edit search
-            </button>
-          </div>
+      {idle && (
+        <div className="mx-auto max-w-3xl pt-8 text-center sm:pt-12 lg:pt-16">
+          <h1 className="text-balance font-serif text-[36px] font-medium leading-[1.08] tracking-[-0.02em] text-ink sm:text-[46px] lg:text-[54px]">
+            What is in your kitchen?
+          </h1>
+          <p className="mx-auto mt-4 max-w-xl text-balance text-lg leading-relaxed text-slate-600">
+            Pick a few ingredients, or describe the dish you feel like. RecipeSense ranks {catalogue} to match.
+          </p>
+        </div>
+      )}
+
+      <div className={idle ? 'mx-auto mt-8 max-w-3xl lg:mt-10' : 'mt-4 lg:mt-6'}>
+        {folded && (
+          <button type="button" onClick={() => setCollapsed(false)} className="btn-quiet w-full gap-2 lg:hidden">
+            <SlidersHorizontal size={16} aria-hidden="true" />
+            Edit search
+          </button>
         )}
-
         <SearchPanel
-          className={`${collapsed ? 'hidden' : 'flex'} lg:flex lg:min-h-0 lg:flex-1`}
+          className={folded ? 'hidden lg:block' : ''}
+          compact={!idle}
           meta={meta}
           busy={results.status === 'loading'}
           hasResults={results.status === 'done'}
@@ -173,14 +176,9 @@ const Home = () => {
           onClear={clearResults}
           preset={preset}
         />
-      </aside>
+      </div>
 
-      <main
-        ref={resultRef}
-        className={`min-w-0 flex-1 scroll-mt-4 px-5 pb-16 pt-8 lg:px-12 lg:pt-9 ${
-          results.status === 'idle' ? 'hidden lg:block' : ''
-        } ${collapsed || results.status === 'idle' ? '' : 'border-t border-slate-200 lg:border-t-0'}`}
-      >
+      <main ref={resultRef} className={idle ? 'mx-auto mt-12 max-w-3xl lg:mt-14' : 'mt-8 scroll-mt-4 lg:mt-10'}>
         <ResultsGrid
           status={results.status}
           error={results.error}

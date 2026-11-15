@@ -58,8 +58,8 @@ const ResultsGrid = ({
           {run && <FilterSummary run={run} />}
           <Pipeline className="mt-4" label="Finding recipes" steps={searchSteps(run, recipes)} />
         </header>
-        <div aria-hidden="true" className="grid grid-cols-1 gap-x-8 gap-y-10 border-t border-slate-200 pt-6 sm:grid-cols-2 xl:grid-cols-3">
-          {Array.from({ length: 6 }, (_, i) => (
+        <div aria-hidden="true" className="grid grid-cols-1 gap-x-8 gap-y-10 border-t border-slate-200 pt-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {Array.from({ length: 8 }, (_, i) => (
             <div key={i} className="animate-pulse motion-reduce:animate-none" style={{ animationDelay: `${i * 140}ms` }}>
               <div className="aspect-[3/2] rounded-[3px] bg-[#efede8]" />
               <div className="mt-5 h-4 w-32 rounded bg-[#efede8]" />
@@ -83,15 +83,9 @@ const ResultsGrid = ({
 
   if (status === 'idle') {
     return (
-      <div className="max-w-xl py-6 lg:py-12">
-        <h1 className="font-serif text-[28px] font-medium leading-tight tracking-[-0.01em] text-ink lg:text-[32px]">
-          What is in your kitchen?
-        </h1>
-        <p className="mt-4 text-lg leading-relaxed text-slate-600">
-          Pick a few ingredients, or describe the dish you feel like, and get recipes that use them.
-        </p>
-        <h2 className="mt-14 text-sm font-medium text-ink">Or start from a description</h2>
-        <ul className="mt-3 border-t border-slate-200">
+      <div>
+        <h2 className="text-sm font-medium text-ink">Or start from a description</h2>
+        <ul className="mt-3 border-t border-slate-200 sm:grid sm:grid-cols-2 sm:gap-x-10">
           {EXAMPLES.map((text) => (
             <li key={text} className="border-b border-slate-200">
               <button
@@ -130,7 +124,7 @@ const ResultsGrid = ({
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 gap-x-8 gap-y-10 border-t border-slate-200 pt-6 sm:grid-cols-2 xl:grid-cols-3">
+          <div className="grid grid-cols-1 gap-x-8 gap-y-10 border-t border-slate-200 pt-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {items.slice(start, start + pageSize).map((recipe) => (
               <RecipeCard
                 key={recipe.id}
