@@ -63,4 +63,5 @@ export const getSimilar = (id, opts) =>
 
 export const getMeta = (opts) => request('/api/meta', opts);
 
-export const checkHealth = (opts) => request('/api/health', { timeout: 6000, ...opts });
+// A cold start of the API takes about 10 s, so the timeout has to sit well above that.
+export const checkHealth = (opts) => request('/api/health', { timeout: 20000, ...opts });
