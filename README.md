@@ -182,7 +182,7 @@ docker build -t recipesense . && docker run -p 7860:7860 recipesense
 | Evaluate free-text search | `python -m recsys.eval_semantic` |
 | Pack both datasets into `data/catalogue/` and train its models, about 20 min | `python -m recsys.catalogue` |
 | Evaluate the packed catalogue on a sample of `test` | `python -m recsys.evaluate --catalogue` |
-| Tests (168) | `python -m pytest` |
+| Tests (170) | `python -m pytest` |
 | Web lint and build | `cd web && npm run lint && npm run build` |
 | Rebuild the README images | `node docs/images/src/build.mjs` (needs playwright-core, see the file header) |
 
