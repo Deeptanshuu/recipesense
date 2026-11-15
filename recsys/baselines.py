@@ -8,8 +8,13 @@ from __future__ import annotations
 import re
 
 import numpy as np
-import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
+
+# pandas is only needed to read the source data, not to serve the packed catalogue.
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    import pandas as pd
 
 _CLEAN = re.compile(r"[^a-zA-Z0-9\s]")
 

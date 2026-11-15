@@ -10,7 +10,12 @@ A cuisine label can sit in more than one group: "Kerala Recipes" is both
 """
 from __future__ import annotations
 
-import pandas as pd
+# pandas is only needed to read the source data, not to serve the packed catalogue.
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    import pandas as pd
+
 
 OTHER = "Other"
 

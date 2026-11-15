@@ -7,7 +7,7 @@
   "functions": {
     "api/index.py": {
       "maxDuration": 30,
-      "excludeFiles": "{web/**,tests/**,docs/**,.github/**,**/__pycache__/**,Dockerfile,README.md}"
+      "excludeFiles": "{web/**,tests/**,docs/**,.github/**,**/__pycache__/**,Dockerfile,README.md,data/recipes.csv,data/raw/**,models/text_embeddings.*,models/ingredient_vectors.npz,models/ranker.*}"
     }
   },
   "rewrites": [

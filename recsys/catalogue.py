@@ -31,12 +31,17 @@ from collections import Counter
 from pathlib import Path
 
 import numpy as np
-import pandas as pd
 from scipy import sparse
 
 from .data import ROOT, Vocabulary, load_recipes
 from .taxonomy import (COURSE_GROUPS, CUISINE_GROUPS, course_group, course_options_from, cuisine_groups,
                        cuisine_options_from)
+
+# pandas is only needed to read the source data, not to serve the packed catalogue.
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    import pandas as pd
 
 CATALOGUE_DIR = ROOT / "data" / "catalogue"
 VERSION = 1
@@ -51,6 +56,8 @@ MIN_SUGGESTED = 20
 
 def load_sources() -> pd.DataFrame:
     """Both datasets as one frame. Food.com is added when its file is there."""
+    import pandas as pd
+
     from .foodcom import FOODCOM, load_foodcom
 
     frames = [load_recipes()]
@@ -66,6 +73,8 @@ def exists(path: Path = CATALOGUE_DIR) -> bool:
 # ----- writing -----
 
 def _minutes(series: pd.Series) -> np.ndarray:
+    import pandas as pd
+
     values = pd.to_numeric(series, errors="coerce").to_numpy(dtype=np.float64)
     ok = np.isfinite(values) & (values >= 0) & (values < 32000)
     return np.where(ok, np.round(np.where(ok, values, 0)), NO_TIME).astype(np.int16)

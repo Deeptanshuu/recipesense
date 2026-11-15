@@ -12,7 +12,12 @@ from collections import Counter, defaultdict
 from dataclasses import dataclass, field
 from pathlib import Path
 
-import pandas as pd
+# pandas is only needed to read the source data, not to serve the packed catalogue.
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    import pandas as pd
+
 
 ROOT = Path(__file__).resolve().parent.parent
 DATASET = ROOT / "data" / "recipes.csv"
@@ -105,6 +110,8 @@ def load_recipes(path: str | Path | None = None, dedupe: bool = True) -> pd.Data
     English recipes and a few plain repeats) and the remaining Hindi-only
     rows, whose description and steps have no English version.
     """
+    import pandas as pd
+
     if path is None:
         path = DATASET
     df = pd.read_csv(path)

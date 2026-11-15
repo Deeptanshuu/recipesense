@@ -11,7 +11,6 @@ from __future__ import annotations
 import threading
 
 import numpy as np
-import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
 
 from . import catalogue
@@ -20,6 +19,12 @@ from .palette import Palette
 from .registry import build_rankers
 from .taxonomy import (COURSE_GROUPS, CUISINE_GROUPS, course_group, course_options, cuisine_groups,
                        cuisine_options, resolve_course, resolve_cuisines)
+
+# pandas is only needed to read the source data, not to serve the packed catalogue.
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    import pandas as pd
 
 # _pick sorts only this many of the best rows unless it runs out of them.
 PICK_POOL = 2000
@@ -101,7 +106,8 @@ class FrameStore:
 
     def detail(self, pos: int) -> tuple[str, str, str]:
         row = self.recipes.iloc[pos]
-        names = str(row["ingredients_name"]) if pd.notna(row["ingredients_name"]) else ""
+        names = row["ingredients_name"]
+        names = names if isinstance(names, str) else ""
         return row["description"], row["instructions"], names
 
     def cuisine_masks(self) -> dict[str, np.ndarray]:

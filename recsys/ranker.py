@@ -13,11 +13,16 @@ import zlib
 from pathlib import Path
 
 import numpy as np
-import pandas as pd
 
 from .baselines import TfidfRanker
 from .data import Vocabulary
 from .embeddings import MODELS_DIR, EmbeddingRanker, OverlapRanker
+
+# pandas is only needed to read the source data, not to serve the packed catalogue.
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    import pandas as pd
 
 MODEL_PATH = MODELS_DIR / "ranker.txt"
 META_PATH = MODELS_DIR / "ranker.json"

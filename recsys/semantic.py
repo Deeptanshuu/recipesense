@@ -24,9 +24,14 @@ import re
 from pathlib import Path
 
 import numpy as np
-import pandas as pd
 
 from .data import ROOT, strip_alias
+
+# pandas is only needed to read the source data, not to serve the packed catalogue.
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    import pandas as pd
 
 MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
 MODEL_DIR = ROOT / "models"

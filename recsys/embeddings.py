@@ -16,11 +16,16 @@ import zlib
 from pathlib import Path
 
 import numpy as np
-import pandas as pd
 from scipy import sparse
 from sklearn.feature_extraction.text import TfidfVectorizer
 
 from .data import Vocabulary, canonical
+
+# pandas is only needed to read the source data, not to serve the packed catalogue.
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    import pandas as pd
 
 MODELS_DIR = Path(__file__).resolve().parent.parent / "models"
 VECTORS_PATH = MODELS_DIR / "ingredient_vectors.npz"

@@ -6,12 +6,17 @@ they are not.
 """
 from __future__ import annotations
 
-import pandas as pd
 
 from .baselines import BruteForceRanker, TfidfRanker
 from .data import Vocabulary
 from .embeddings import VECTORS_PATH, EmbeddingRanker, IngredientIndex, OverlapRanker, load_vectors, train_vectors
 from .ranker import FeatureBuilder, LearnedRanker, TreeEnsemble, load_ranker, train_ranker
+
+# pandas is only needed to read the source data, not to serve the packed catalogue.
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    import pandas as pd
 
 
 class _Parts:
